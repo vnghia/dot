@@ -1,3 +1,6 @@
+use clap::Parser;
+use dot::{entry, Cli};
+
 fn main() {
-    println!("Hello, world!");
+    entry(Cli::parse())
 }
