@@ -28,13 +28,18 @@ fn generate_zshenv<P: AsRef<Path>, PD: AsRef<Path>, PC: AsRef<Path>>(
     dot_dir: PD,
     code_dir: PC,
 ) {
+    let dot_dir = dot_dir.as_ref();
+    let code_dir = code_dir.as_ref();
+    let shell_dir = dot_dir.join("shell");
+
     let zshenv_path = prefix.as_ref().join(".zshenv");
     let zshenv_content = [
         "# AUTO GENERATED FILE. DO NOT EDIT".to_string(),
         "".to_string(),
-        format!("export DOTDIR={}", dot_dir.as_ref().to_str().unwrap()),
-        format!("export CODEDIR={}", code_dir.as_ref().to_str().unwrap()),
-        format!("export ZDOTDIR={}", dot_dir.as_ref().join("shell").join("zsh").to_str().unwrap()),
+        format!("export DOTDIR={}", dot_dir.to_str().unwrap()),
+        format!("export CODEDIR={}", code_dir.to_str().unwrap()),
+        format!("export SHDIR={}", shell_dir.join("common").to_str().unwrap()),
+        format!("export ZDOTDIR={}", shell_dir.join("zsh").to_str().unwrap()),
         "".to_string(),
     ]
     .join("\n");

@@ -1,0 +1,1 @@
+source "$SHDIR/entry.sh"
