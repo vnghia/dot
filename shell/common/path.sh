@@ -1,0 +1,1 @@
+export PATH="$BINDIR:$PATH"
