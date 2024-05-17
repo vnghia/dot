@@ -314,4 +314,7 @@ zsdoc/data
 /tests/_output/*
 !/tests/_output/.gitkeep
 
+# Local
+.local/
+
 # End of https://www.toptal.com/developers/gitignore/api/zsh,python,rust,visualstudiocode,macos,linux,direnv,rust-analyzer,windows
