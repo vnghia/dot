@@ -2,7 +2,7 @@
 name = "dot"
 version = "0.1.0"
 edition = "2021"
-description = "Dotfiles utility"
+description = "Dot utility"
 
 [dependencies]
 clap = { version = "4.5.4", features = ["derive", "string"] }

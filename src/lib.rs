@@ -17,7 +17,7 @@ pub struct Cli {
 
 #[derive(Debug, Subcommand)]
 pub enum Command {
-    /// Initialize dotfiles environment.
+    /// Initialize dot environment.
     Init(InitArgs),
 }
 

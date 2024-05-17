@@ -7,10 +7,10 @@ use homedir::get_my_home;
 
 #[derive(Debug, Args)]
 pub struct InitArgs {
-    /// Prefix to initialize dotfiles environment into.
+    /// Prefix to initialize dot environment into.
     #[arg(short, long, default_value = get_my_home().unwrap().unwrap().into_os_string())]
     pub prefix: PathBuf,
-    /// Url of the dotfiles git repository.
+    /// Url of the dot git repository.
     #[arg(short, long, value_enum, default_value = "https://github.com/vnghia/dotfile-rs.git")]
     pub repo: String,
     /// The corresponding shell to initialize dotfile environments.
@@ -25,16 +25,16 @@ pub enum Shell {
 
 fn generate_zshenv<P: AsRef<Path>, PD: AsRef<Path>, PC: AsRef<Path>>(
     prefix: P,
-    dotfiles_home: PD,
-    code_home: PC,
+    dot_dir: PD,
+    code_dir: PC,
 ) {
     let zshenv_path = prefix.as_ref().join(".zshenv");
     let zshenv_content = [
         "# AUTO GENERATED FILE. DO NOT EDIT".to_string(),
         "".to_string(),
-        format!("export DOTFILES_HOME={}", dotfiles_home.as_ref().to_str().unwrap()),
-        format!("export CODE_HOME={}", code_home.as_ref().to_str().unwrap()),
-        format!("export ZDOTDIR={}", dotfiles_home.as_ref().join("zsh").to_str().unwrap()),
+        format!("export DOTDIR={}", dot_dir.as_ref().to_str().unwrap()),
+        format!("export CODEDIR={}", code_dir.as_ref().to_str().unwrap()),
+        format!("export ZDOTDIR={}", dot_dir.as_ref().join("shell").join("zsh").to_str().unwrap()),
         "".to_string(),
     ]
     .join("\n");
@@ -52,19 +52,19 @@ fn generate_zshenv<P: AsRef<Path>, PD: AsRef<Path>, PC: AsRef<Path>>(
 
 pub fn entry_init(args: InitArgs) {
     let prefix = args.prefix.canonicalize().expect("can not canonicalize prefix");
-    let dotfiles_home = prefix.join(".dotfiles");
-    let code_home = prefix.join("code");
-    log::info!(dotfiles:? = dotfiles_home, code:? = code_home; "Home");
+    let dot_dir = prefix.join(".dot");
+    let code_dir = prefix.join("code");
+    log::info!(dot:? = dot_dir, code:? = code_dir; "Directory");
 
-    if dotfiles_home.exists() {
-        log::info!(repo:? = args.repo, dest:? = dotfiles_home; "Opening existing dotfiles");
-        Repository::open(&dotfiles_home).expect("can not open existing dotfiles repository");
+    if dot_dir.exists() {
+        log::info!(repo:? = args.repo, dest:? = dot_dir; "Opening existing dot repository");
+        Repository::open(&dot_dir).expect("can not open existing dot repository");
     } else {
-        log::info!(repo:? = args.repo, dest:? = dotfiles_home; "Cloning dotfiles");
-        Repository::clone(&args.repo, &dotfiles_home).expect("can not cloning dotfiles");
+        log::info!(repo:? = args.repo, dest:? = dot_dir; "Cloning dot repository");
+        Repository::clone(&args.repo, &dot_dir).expect("can not cloning dot repository");
     }
 
     match args.shell {
-        Shell::Zsh => generate_zshenv(&prefix, &dotfiles_home, &code_home),
+        Shell::Zsh => generate_zshenv(&prefix, &dot_dir, &code_dir),
     }
 }
