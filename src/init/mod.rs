@@ -5,6 +5,8 @@ use clap::{Args, ValueEnum};
 use git2::Repository;
 use homedir::get_my_home;
 
+use crate::git::pull;
+
 #[derive(Debug, Args)]
 pub struct InitArgs {
     /// Prefix to initialize dot environment into.
@@ -63,7 +65,12 @@ pub fn entry_init(args: InitArgs) {
 
     if dot_dir.exists() {
         log::info!(repo:? = args.repo, dest:? = dot_dir; "Opening existing dot repository");
-        Repository::open(&dot_dir).expect("can not open existing dot repository");
+        pull(
+            &Repository::open(&dot_dir).expect("can not open existing dot repository"),
+            None,
+            None,
+        )
+        .expect("can not update repo from remote");
     } else {
         log::info!(repo:? = args.repo, dest:? = dot_dir; "Cloning dot repository");
         Repository::clone(&args.repo, &dot_dir).expect("can not cloning dot repository");

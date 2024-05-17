@@ -1,3 +1,4 @@
+mod git;
 mod init;
 use clap::{Args, Parser, Subcommand};
 use clap_verbosity_flag::{InfoLevel, Verbosity};
