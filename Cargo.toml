@@ -11,5 +11,6 @@ env_logger = { version = "0.11.3", default-features = false, features = [
     "auto-color",
     "unstable-kv",
 ] }
+git2 = { version = "0.18.3", features = ["vendored-libgit2"] }
 homedir = { version = "0.2.1" }
 log = { version = "0.4.21", features = ["kv"] }
