@@ -45,7 +45,8 @@ pub fn generate_zshenv<
     ]
     .concat()
     .join("\n");
-    log::trace!(path:? = zshenv_path, content:? = zshenv_content; "Generating zshenv");
+    log::debug!(path:? = zshenv_path; "Generating zshenv");
+    log::trace!(content:% = zshenv_content; "Generating zshenv");
 
     std::fs::File::options()
         .write(true)

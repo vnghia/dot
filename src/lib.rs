@@ -29,8 +29,12 @@ pub struct Global {
 }
 
 pub fn entry(cli: Cli) {
-    env_logger::builder().filter_level(cli.global.verbose.log_level_filter()).init();
-    log::trace!("{:?}", cli);
+    env_logger::builder()
+        .filter_module("dot", cli.global.verbose.log_level_filter())
+        .format_module_path(false)
+        .format_target(false)
+        .init();
+    log::trace!("\n{:#?}", cli);
 
     match cli.command {
         Command::Init(args) => entry_init(args),
