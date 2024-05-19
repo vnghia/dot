@@ -1,10 +1,14 @@
+mod constant;
 mod git;
 mod init;
+mod install;
 use clap::{Args, Parser, Subcommand};
 use clap_verbosity_flag::{InfoLevel, Verbosity};
 use init::InitArgs;
+use install::InstallArgs;
 
 use crate::init::entry_init;
+use crate::install::entry_install;
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
@@ -20,6 +24,8 @@ pub struct Cli {
 pub enum Command {
     /// Initialize dot environment.
     Init(InitArgs),
+    /// Install binary from internet.
+    Install(InstallArgs),
 }
 
 #[derive(Debug, Args)]
@@ -38,5 +44,6 @@ pub fn entry(cli: Cli) {
 
     match cli.command {
         Command::Init(args) => entry_init(args),
+        Command::Install(args) => entry_install(args),
     }
 }

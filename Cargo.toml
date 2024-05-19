@@ -11,7 +11,13 @@ env_logger = { version = "0.11.3", default-features = false, features = [
     "auto-color",
     "unstable-kv",
 ] }
+flate2 = { version = "1.0.30" }
 git2 = { version = "0.18.3", features = ["vendored-libgit2"] }
 homedir = { version = "0.2.1" }
+indicatif = { version = "0.17.8" }
 itertools = { version = "0.13.0" }
 log = { version = "0.4.21", features = ["kv"] }
+tar = { version = "0.4.40" }
+tempfile = { version = "3.10.1", features = ["nightly"] }
+ureq = { version = "2.9.7" }
+zip = { version = "1.3.0" }
