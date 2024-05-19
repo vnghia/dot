@@ -14,7 +14,7 @@ pub fn pull(
     remote.fetch(&[branch], None, None)?;
     let fetch_commit = repo.reference_to_annotated_commit(&repo.find_reference("FETCH_HEAD")?)?;
 
-    let analysis = repo.merge_analysis(&[&fetch_commit]).expect("can not do merge analysis");
+    let analysis = repo.merge_analysis(&[&fetch_commit])?;
     if analysis.0.is_fast_forward() {
         log::info!(commit:% = fetch_commit.id(); "Fast-forwarding");
         let refname = format!("refs/heads/{}", branch);

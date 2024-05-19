@@ -27,7 +27,7 @@ pub enum Shell {
 }
 
 pub fn entry_init(args: InitArgs) {
-    let prefix = args.prefix.canonicalize().expect("can not canonicalize prefix");
+    let prefix = args.prefix.canonicalize().unwrap();
     let dot_dir = prefix.join(".dot");
     let code_dir = prefix.join("code");
     let local_dir = dot_dir.join(".local");
@@ -36,27 +36,22 @@ pub fn entry_init(args: InitArgs) {
 
     if dot_dir.exists() {
         log::info!(repo:? = args.repo, dest:? = dot_dir; "Opening existing dot repository");
-        pull(
-            &Repository::open(&dot_dir).expect("can not open existing dot repository"),
-            None,
-            None,
-        )
-        .expect("can not update repo from remote");
+        pull(&Repository::open(&dot_dir).unwrap(), None, None).unwrap();
     } else {
         log::info!(repo:? = args.repo, dest:? = dot_dir; "Cloning dot repository");
-        Repository::clone(&args.repo, &dot_dir).expect("can not cloning dot repository");
+        Repository::clone(&args.repo, &dot_dir).unwrap();
     }
 
     match args.shell {
         Shell::Zsh => zsh::generate_zshenv(&prefix, &dot_dir, &code_dir, &local_dir, &bin_dir),
     }
 
-    std::fs::create_dir_all(&code_dir).expect("can not create code directory");
-    std::fs::create_dir_all(&local_dir).expect("can not create local directory");
-    std::fs::create_dir_all(&bin_dir).expect("can not create bin directory");
+    std::fs::create_dir_all(&code_dir).unwrap();
+    std::fs::create_dir_all(&local_dir).unwrap();
+    std::fs::create_dir_all(&bin_dir).unwrap();
 
-    let from_dot = std::env::current_exe().expect("can not get current executable path");
+    let from_dot = std::env::current_exe().unwrap();
     let to_dot = bin_dir.join("dot");
     log::info!(from:? = from_dot, to:? = to_dot; "Copying dot binary");
-    std::fs::copy(from_dot, to_dot).expect("can not copy dot binary to binary directory");
+    std::fs::copy(from_dot, to_dot).unwrap();
 }

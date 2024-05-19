@@ -53,7 +53,7 @@ pub fn generate_zshenv<
         .create(true)
         .truncate(true)
         .open(&zshenv_path)
-        .expect("can not open .zshenv file to write")
+        .unwrap()
         .write_all(zshenv_content.as_bytes())
-        .expect("can not write to .zshenv file");
+        .unwrap();
 }
