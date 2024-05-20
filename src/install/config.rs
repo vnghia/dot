@@ -28,8 +28,8 @@ pub const DIRENV_BINARY: Binary<[&str; 0]> = Binary {
     name: "direnv",
     url: formatc!(
         "https://github.com/direnv/direnv/releases/latest/download/direnv.{}-{}",
-        os::OS_KERNEL,
-        arch::SHORT_ARCH,
+        os::UNAME,
+        arch::SHORT,
     ),
     archive: None,
     version_arg: "--version",
