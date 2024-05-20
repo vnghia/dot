@@ -4,11 +4,12 @@ use clap::ValueEnum;
 use const_format::formatc;
 
 use super::binary::{ArchiveType, Binary};
-use crate::constant::target::TARGET_TRIPLET;
+use crate::constant::target::*;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum InstallConfig {
     Starship,
+    Direnv,
 }
 
 pub const STARSHIP_BINARY: Binary<[&str; 1]> = Binary {
@@ -23,10 +24,24 @@ pub const STARSHIP_BINARY: Binary<[&str; 1]> = Binary {
     phantom_t: std::marker::PhantomData,
 };
 
+pub const DIRENV_BINARY: Binary<[&str; 0]> = Binary {
+    name: "direnv",
+    url: formatc!(
+        "https://github.com/direnv/direnv/releases/latest/download/direnv.{}-{}",
+        os::OS_KERNEL,
+        arch::SHORT_ARCH,
+    ),
+    archive: None,
+    version_arg: "--version",
+    phantom_c: std::marker::PhantomData,
+    phantom_t: std::marker::PhantomData,
+};
+
 impl InstallConfig {
     pub fn download<PB: AsRef<Path>>(self, bin_dir: PB) {
         match self {
             InstallConfig::Starship => STARSHIP_BINARY.download(bin_dir),
+            InstallConfig::Direnv => DIRENV_BINARY.download(bin_dir),
         }
     }
 }
