@@ -45,3 +45,22 @@ impl InstallConfig {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use tempfile::TempDir;
+
+    use super::*;
+
+    #[test]
+    fn test_install_starship() {
+        let bin_dir = TempDir::new().unwrap();
+        InstallConfig::Starship.download(bin_dir);
+    }
+
+    #[test]
+    fn test_install_direnv() {
+        let bin_dir = TempDir::new().unwrap();
+        InstallConfig::Direnv.download(bin_dir);
+    }
+}

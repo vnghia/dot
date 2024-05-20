@@ -96,7 +96,7 @@ where
         if let Some((archive_type, archive_paths)) = self.archive.as_ref() {
             log::info!(name = self.name, archive:? = self.archive; "Extracting binary");
             let temp_dir = TempDir::new().unwrap();
-            archive_type.extract(&buf, temp_dir.path());
+            archive_type.extract(&buf, &temp_dir);
 
             let mut archive_path = temp_dir.path().to_path_buf();
             if let Some(archive_paths) = archive_paths {
