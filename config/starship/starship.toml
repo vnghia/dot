@@ -1,0 +1,31 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+format = """[⟨](bracket) [λ](bold lambda) [⟩](bracket) $directory
+[⟩](bold promt) 
+"""
+add_newline = false
+palette = "starship"
+
+[directory]
+format = "[$read_only]($read_only_style)[$path]($style)"
+truncation_length = 3
+style = "bold path"
+read_only = " "
+read_only_style = "lock"
+home_symbol = "~"
+repo_root_format = "[$read_only]($read_only_style)[$before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)[$path]($style)"
+before_repo_root_style = "truncate"
+repo_root_style = "bold repo"
+fish_style_pwd_dir_length = 2
+
+[palettes.starship]
+# promt
+lambda = "196"
+bracket = "124"
+promt = "196"
+
+# directory
+path = "45"
+repo = "209"
+truncate = "24"
+lock = "227"

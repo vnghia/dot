@@ -1,1 +1,1 @@
-
+export CONFIGDIR="$DOTDIR/config"
