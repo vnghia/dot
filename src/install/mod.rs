@@ -31,6 +31,10 @@ pub struct BinaryArgs {
     /// The path to the binary inside archive.
     #[arg(short = 'p', long)]
     pub archive_paths: Option<Vec<String>>,
+    /// Arg to print the version info of the downloaded binary.
+    /// A `^` can be addded to the beginning to avoid parsing error.
+    #[arg(short = 'a', long)]
+    pub version_arg: String,
 }
 
 pub fn entry_install(args: InstallArgs) {

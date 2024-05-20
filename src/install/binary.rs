@@ -1,4 +1,5 @@
 use std::fmt::Debug;
+use std::fs::Permissions;
 use std::io::{Cursor, Write};
 use std::marker::PhantomData;
 use std::os::unix::fs::PermissionsExt;
@@ -40,7 +41,7 @@ impl ArchiveType {
     }
 }
 
-pub struct Binary<'a, 'b, 'c, 't, T: Debug + 't>
+pub struct Binary<'a, 'b, 'c, 'd, 't, T: Debug + 't>
 where
     &'t T: IntoIterator<Item = &'t &'c str>,
     'c: 't,
@@ -48,11 +49,12 @@ where
     pub name: &'a str,
     pub url: &'b str,
     pub archive: Option<(ArchiveType, Option<T>)>,
+    pub version_arg: &'d str,
     pub phantom_c: PhantomData<&'c str>,
     pub phantom_t: PhantomData<&'t T>,
 }
 
-impl<'s, 'a, 'b, 'c, 't, T: Debug + 't> Binary<'a, 'b, 'c, 't, T>
+impl<'s, 'a, 'b, 'c, 'd, 't, T: Debug + 't> Binary<'a, 'b, 'c, 'd, 't, T>
 where
     &'t T: IntoIterator<Item = &'t &'c str>,
     'c: 't,
@@ -114,14 +116,16 @@ where
                 .write_all(&buf)
                 .unwrap();
         }
+        std::fs::set_permissions(&bin_path, Permissions::from_mode(0o777)).unwrap();
 
-        std::fs::metadata(&bin_path).unwrap().permissions().set_mode(0o777);
+        log::info!(name = self.name, arg = self.version_arg; "Downloaded binary version");
+        std::process::Command::new(&bin_path).arg(self.version_arg).spawn().unwrap();
     }
 }
 
-impl<'s, 'a, 'b, 'c, 't> From<&'s BinaryArgs> for Binary<'a, 'b, 'c, 't, Vec<&'c str>>
+impl<'s, 'a, 'b, 'c, 'd, 't> From<&'s BinaryArgs> for Binary<'a, 'b, 'c, 'd, 't, Vec<&'c str>>
 where
-    's: 'a + 'b + 'c + 't,
+    's: 'a + 'b + 'c + 'd + 't,
 {
     fn from(value: &'s BinaryArgs) -> Self {
         Self {
@@ -130,6 +134,7 @@ where
             archive: value.archive_type.map(|t| {
                 (t, value.archive_paths.as_ref().map(|v| v.iter().map(String::as_str).collect()))
             }),
+            version_arg: value.version_arg.trim_matches('^'),
             phantom_c: Default::default(),
             phantom_t: Default::default(),
         }
