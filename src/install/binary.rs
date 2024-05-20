@@ -5,7 +5,7 @@ use std::marker::PhantomData;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
-use clap::ValueEnum;
+use clap::{CommandFactory, ValueEnum};
 use flate2::bufread::GzDecoder;
 use indicatif::{ProgressBar, ProgressStyle};
 use tar::Archive;
@@ -13,6 +13,7 @@ use tempfile::TempDir;
 use zip::ZipArchive;
 
 use super::BinaryArgs;
+use crate::Cli;
 
 // 1MiB
 const CHUNK_SIZE: usize = 1024 * 1024;
@@ -128,15 +129,39 @@ where
     's: 'a + 'b + 'c + 'd + 't,
 {
     fn from(value: &'s BinaryArgs) -> Self {
+        let Some(ref name) = value.name else {
+            Cli::command()
+                .error(
+                    clap::error::ErrorKind::MissingRequiredArgument,
+                    "--name is required if --config is not used",
+                )
+                .exit()
+        };
+        let Some(ref url) = value.url else {
+            Cli::command()
+                .error(
+                    clap::error::ErrorKind::MissingRequiredArgument,
+                    "--url is required if --config is not used",
+                )
+                .exit()
+        };
+        let Some(ref version_arg) = value.version_arg else {
+            Cli::command()
+                .error(
+                    clap::error::ErrorKind::MissingRequiredArgument,
+                    "--version-arg is required if --config is not used",
+                )
+                .exit()
+        };
         Self {
-            name: &value.name,
-            url: &value.url,
+            name,
+            url,
             archive: value.archive_type.map(|t| {
                 (t, value.archive_paths.as_ref().map(|v| v.iter().map(String::as_str).collect()))
             }),
-            version_arg: value.version_arg.trim_matches('^'),
-            phantom_c: Default::default(),
-            phantom_t: Default::default(),
+            version_arg: version_arg.trim_matches('^'),
+            phantom_c: std::marker::PhantomData,
+            phantom_t: std::marker::PhantomData,
         }
     }
 }

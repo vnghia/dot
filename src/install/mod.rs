@@ -1,11 +1,13 @@
 mod binary;
+mod config;
 
 use std::path::PathBuf;
 
 use clap::{Args, CommandFactory};
 
 use self::binary::{ArchiveType, Binary};
-use super::constant::BINDIR_KEY;
+use self::config::InstallConfig;
+use super::constant::env::BINDIR_KEY;
 use crate::Cli;
 
 #[derive(Debug, Args)]
@@ -13,6 +15,10 @@ pub struct InstallArgs {
     /// Directory to install the binary into, default to `$BINDIR`.
     #[arg(short, long)]
     pub bin_dir: Option<PathBuf>,
+    /// Install the binary from a predefined config.
+    /// Will take precedent if both config and other options are supplied.
+    #[arg(short, long, value_enum)]
+    pub config: Option<InstallConfig>,
     #[command(flatten)]
     pub binary: BinaryArgs,
 }
@@ -21,10 +27,10 @@ pub struct InstallArgs {
 pub struct BinaryArgs {
     /// Name of the binary.
     #[arg(short, long)]
-    pub name: String,
+    pub name: Option<String>,
     /// Url to download binary.
     #[arg(short, long)]
-    pub url: String,
+    pub url: Option<String>,
     /// Archive type of the url
     #[arg(short = 't', long, value_enum)]
     pub archive_type: Option<ArchiveType>,
@@ -34,7 +40,7 @@ pub struct BinaryArgs {
     /// Arg to print the version info of the downloaded binary.
     /// A `^` can be addded to the beginning to avoid parsing error.
     #[arg(short = 'a', long)]
-    pub version_arg: String,
+    pub version_arg: Option<String>,
 }
 
 pub fn entry_install(args: InstallArgs) {
@@ -50,5 +56,10 @@ pub fn entry_install(args: InstallArgs) {
                 .exit()
         }
     });
-    Binary::from(&args.binary).download(bin_dir);
+
+    if let Some(config) = args.config {
+        config.download(bin_dir);
+    } else {
+        Binary::from(&args.binary).download(bin_dir);
+    }
 }

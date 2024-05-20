@@ -1,3 +1,6 @@
+#![deny(clippy::all)]
+#![feature(const_mut_refs)]
+
 mod constant;
 mod git;
 mod init;

@@ -1,1 +1,2 @@
-pub const BINDIR_KEY: &str = "BINDIR";
+pub mod env;
+pub mod target;
