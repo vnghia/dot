@@ -1,6 +1,6 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
-format = """[⟨](bracket) [λ](bold lambda) [⟩](bracket) $directory
+format = """[⟨](bracket) [λ](bold lambda) [⟩](bracket) $directory $git_branch$git_commit$git_status$git_state
 [⟩](bold promt) 
 """
 add_newline = false
@@ -9,14 +9,49 @@ palette = "starship"
 [directory]
 format = "[$read_only]($read_only_style)[$path]($style)"
 truncation_length = 3
-style = "bold path"
+style = "path"
 read_only = " "
 read_only_style = "lock"
 home_symbol = "~"
 repo_root_format = "[$read_only]($read_only_style)[$before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)[$path]($style)"
 before_repo_root_style = "truncate"
-repo_root_style = "bold repo"
+repo_root_style = "repo"
 fish_style_pwd_dir_length = 2
+
+[git_branch]
+format = "[⟩](path) [$symbol$branch(:$remote_branch)]($style)"
+style = "commit"
+symbol = " "
+only_attached = true
+
+[git_commit]
+format = "[⟩](path) [($hash)](commit)[( $tag)](tag)"
+tag_symbol = ""
+only_detached = true
+tag_disabled = false
+
+[git_status]
+format = "( $ahead_behind)( $untracked)( $modified)( $staged)( $renamed)( $deleted)( $stashed)"
+ahead = "[⇡](bold ahead_behind)[$count](ahead_behind)"
+behind = "[⇣](bold ahead_behind)[$count](ahead_behind)"
+diverged = "[⇡](bold ahead_behind)[$ahead_count](ahead_behind) [⇣](bold ahead_behind)[$behind_count](ahead_behind)"
+untracked = "[?](bold untracked)[$count](untracked)"
+modified = "[~](bold modified)[$count](modified)"
+staged = "[+](bold staged)[$count](staged)"
+renamed = "[⤹](bold renamed)[$count](renamed)"
+deleted = "[x](bold deleted)[$count](deleted)"
+stashed = "[⊻](bold stashed)[$count](stashed)"
+
+[git_state]
+format = " [$state( $progress_current/$progress_total)]($style)"
+style = "state"
+rebase = "rebase"
+merge = "merge"
+revert = "revert"
+cherry_pick = "cherry-pick"
+bisect = "bisect"
+am = "am"
+am_or_rebase = "am/rebase"
 
 [palettes.starship]
 # promt
@@ -26,6 +61,18 @@ promt = "196"
 
 # directory
 path = "45"
-repo = "209"
 truncate = "24"
+repo = "219"
 lock = "227"
+
+# git
+commit = "208"
+tag = "213"
+state = "203"
+ahead_behind = "118"
+untracked = "81"
+modified = "220"
+staged = "121"
+renamed = "147"
+deleted = "9"
+stashed = "224"
