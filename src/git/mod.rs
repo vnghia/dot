@@ -26,7 +26,7 @@ pub fn pull(
         repo.set_head(&refname)?;
         repo.checkout_head(Some(git2::build::CheckoutBuilder::default().force()))?;
     } else if analysis.0.is_up_to_date() {
-        log::info!("Everything is up-to-date")
+        log::info!("Already up to date")
     } else {
         panic!("only fast-forward merge is allowed")
     }
