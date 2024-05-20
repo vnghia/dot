@@ -1,0 +1,93 @@
+name: Main
+
+permissions:
+  contents: read
+  packages: write
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: full
+  RUST_LOG: debug
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - target: x86_64-unknown-linux-gnu
+            command: cargo
+            runs-on: ubuntu-latest
+          - target: x86_64-apple-darwin
+            command: cargo
+            runs-on: macos-13
+          - target: aarch64-apple-darwin
+            command: cargo
+            runs-on: macos-14
+
+    runs-on: ${{ matrix.platform.runs-on }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Extract build information
+        id: build
+        env:
+          TARGET: ${{ matrix.platform.target }}
+        run: |
+          echo "os=$(uname -s | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
+          echo "arch=$(echo $TARGET | cut -d '-' -f1)" >> "$GITHUB_OUTPUT"
+          echo "profile=${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && 'release' || 'dev' }}" >> "$GITHUB_OUTPUT"
+          echo "output-dir=${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && 'release' || 'debug' }}" >> "$GITHUB_OUTPUT"
+      - name: Extract rust toolchain
+        id: toolchain
+        run: |
+          echo "channel=$(grep channel rust-toolchain.toml | awk -F' = ' '{printf $2}' | tr -d '\"')" >> "$GITHUB_OUTPUT"
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: ${{ steps.toolchain.outputs.channel }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.platform.target }}-${{ steps.build.outputs.profile }}
+          save-if: ${{ github.ref == 'refs/heads/main' }}
+
+      - name: Build and test
+        run: |
+          ${{ matrix.platform.command }} build --locked --target ${{ matrix.platform.target }} --profile ${{ steps.build.outputs.profile }}
+          ${{ matrix.platform.command }} test --locked --target ${{ matrix.platform.target }} --profile ${{ steps.build.outputs.profile }}
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.build.outputs.os }}-${{ steps.build.outputs.arch }}
+          path: ${{ github.workspace }}/target/${{ matrix.platform.target }}/${{ steps.build.outputs.output-dir }}/dot
+          retention-days: 1
+
+  upload-release:
+    runs-on: ubuntu-latest
+    needs: [build]
+    if: ${{ github.event_name == 'release' }}
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download build artifact for release
+        uses: actions/download-artifact@v4
+        with:
+          path: ${{ github.workspace }}/artifact/
+      - name: Upload artifact
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          mv artifact/linux-x86_64/dot dot.linux-x86_64
+          mv artifact/darwin-x86_64/dot dot.darwin-x86_64
+          mv artifact/darwin-aarch64/dot dot.darwin-aarch64
+          gh release upload ${{ github.ref_name }} dot.linux-x86_64 dot.darwin-x86_64 dot.darwin-aarch64
