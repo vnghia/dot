@@ -1,10 +1,14 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
 format = """[⟨](bracket) [λ](bold lambda) [⟩](bracket) $directory $git_branch$git_commit$git_status$git_state
-[⟩](bold promt) 
+$character
 """
 add_newline = false
 palette = "starship"
+
+[character]
+success_symbol = "[⟩](bold prompt)"
+error_symbol = "[⟩](bold error_prompt)"
 
 [directory]
 format = "[$read_only]($read_only_style)[$path]($style)"
@@ -56,10 +60,11 @@ am = "am"
 am_or_rebase = "am/rebase"
 
 [palettes.starship]
-# promt
+# prompt
 lambda = "196"
 bracket = "124"
-promt = "196"
+prompt = "196"
+error_prompt = "220"
 
 # directory
 path = "45"
