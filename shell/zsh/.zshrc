@@ -1,4 +1,7 @@
 source "$ZDOTDIR/entry.zsh"
 
-# Starship at the end
+# direnv
+eval "$(direnv hook zsh)"
+
+# starship
 eval "$(starship init zsh)"
