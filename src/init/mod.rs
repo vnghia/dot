@@ -82,8 +82,10 @@ pub fn entry_init(args: InitArgs) {
     std::fs::create_dir_all(&local_dir).unwrap();
     std::fs::create_dir_all(&bin_dir).unwrap();
 
-    let from_dot = std::env::current_exe().unwrap();
+    let from_dot = std::env::current_exe().unwrap().canonicalize().unwrap();
     let to_dot = bin_dir.join("dot");
-    log::info!(from:? = from_dot, to:? = to_dot; "Copying dot binary");
-    std::fs::copy(from_dot, to_dot).unwrap();
+    if from_dot != to_dot {
+        log::info!(from:? = from_dot, to:? = to_dot; "Copying dot binary");
+        std::fs::copy(from_dot, to_dot).unwrap();
+    }
 }
