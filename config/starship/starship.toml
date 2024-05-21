@@ -31,16 +31,18 @@ only_detached = true
 tag_disabled = false
 
 [git_status]
-format = "( $ahead_behind)( $untracked)( $modified)( $staged)( $renamed)( $deleted)( $stashed)"
+format = "( $stashed)( $ahead_behind)( $conflicted)( $untracked)( $modified)( $staged)( $renamed)( $deleted)"
+stashed = "[~](bold stashed)[$count](stashed)"
 ahead = "[⇡](bold ahead_behind)[$count](ahead_behind)"
 behind = "[⇣](bold ahead_behind)[$count](ahead_behind)"
 diverged = "[⇡](bold ahead_behind)[$ahead_count](ahead_behind) [⇣](bold ahead_behind)[$behind_count](ahead_behind)"
+conflicted = "[≠](bold conflicted)[$count](conflicted)"
 untracked = "[?](bold untracked)[$count](untracked)"
-modified = "[~](bold modified)[$count](modified)"
+modified = "[!](bold modified)[$count](modified)"
 staged = "[+](bold staged)[$count](staged)"
 renamed = "[⤹](bold renamed)[$count](renamed)"
 deleted = "[x](bold deleted)[$count](deleted)"
-stashed = "[⊻](bold stashed)[$count](stashed)"
+ignore_submodules = true
 
 [git_state]
 format = " [$state( $progress_current/$progress_total)]($style)"
@@ -69,10 +71,11 @@ lock = "227"
 commit = "208"
 tag = "213"
 state = "203"
+stashed = "224"
 ahead_behind = "118"
+conflicted = "203"
 untracked = "81"
 modified = "220"
 staged = "121"
 renamed = "147"
 deleted = "9"
-stashed = "224"
