@@ -10,6 +10,7 @@ use crate::constant::target::*;
 pub enum InstallConfig {
     Starship,
     Direnv,
+    Rye,
 }
 
 pub const STARSHIP_BINARY: Binary<[&str; 1]> = Binary {
@@ -37,11 +38,25 @@ pub const DIRENV_BINARY: Binary<[&str; 0]> = Binary {
     phantom_t: std::marker::PhantomData,
 };
 
+pub const RYE_BINARY: Binary<[&str; 1]> = Binary {
+    name: "rye",
+    url: formatc!(
+        "https://github.com/astral-sh/rye/releases/latest/download/rye-{}-{}.gz",
+        arch::FULL,
+        os::FULL,
+    ),
+    archive: Some((ArchiveType::Gz, Some(["bin"]))),
+    version_arg: "--version",
+    phantom_c: std::marker::PhantomData,
+    phantom_t: std::marker::PhantomData,
+};
+
 impl InstallConfig {
     pub fn download<PB: AsRef<Path>>(self, bin_dir: PB) {
         match self {
             InstallConfig::Starship => STARSHIP_BINARY.download(bin_dir),
             InstallConfig::Direnv => DIRENV_BINARY.download(bin_dir),
+            InstallConfig::Rye => RYE_BINARY.download(bin_dir),
         }
     }
 }
@@ -62,5 +77,11 @@ mod tests {
     fn test_install_direnv() {
         let bin_dir = TempDir::new().unwrap();
         InstallConfig::Direnv.download(bin_dir);
+    }
+
+    #[test]
+    fn test_install_rye() {
+        let bin_dir = TempDir::new().unwrap();
+        InstallConfig::Rye.download(bin_dir);
     }
 }

@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 use std::fs::Permissions;
-use std::io::{Cursor, Write};
+use std::io::{Cursor, Read, Write};
 use std::marker::PhantomData;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
@@ -22,21 +22,31 @@ const CHUNK_SIZE: usize = 1024 * 1024;
 pub enum ArchiveType {
     #[clap(name = "tar.gz")]
     TarGz,
+    Gz,
     Zip,
 }
 
 impl ArchiveType {
-    fn extract_tar_gz<P: AsRef<Path>>(data: &[u8], dir: P) {
-        Archive::new(GzDecoder::new(data)).unpack(dir).unwrap()
+    fn extract_tar_gz<P: AsRef<Path>>(data: &[u8], dir: P) -> Option<Vec<u8>> {
+        Archive::new(GzDecoder::new(data)).unpack(dir).unwrap();
+        None
     }
 
-    fn extract_zip<P: AsRef<Path>>(data: &[u8], dir: P) {
-        ZipArchive::new(Cursor::new(data)).unwrap().extract(dir).unwrap()
+    fn extract_gz<P: AsRef<Path>>(data: &[u8], _: P) -> Option<Vec<u8>> {
+        let mut buf = vec![];
+        GzDecoder::new(data).read_to_end(&mut buf).unwrap();
+        Some(buf)
     }
 
-    fn extract<P: AsRef<Path>>(self, data: &[u8], dir: P) {
+    fn extract_zip<P: AsRef<Path>>(data: &[u8], dir: P) -> Option<Vec<u8>> {
+        ZipArchive::new(Cursor::new(data)).unwrap().extract(dir).unwrap();
+        None
+    }
+
+    fn extract<P: AsRef<Path>>(self, data: &[u8], dir: P) -> Option<Vec<u8>> {
         match self {
             ArchiveType::TarGz => Self::extract_tar_gz(data, dir),
+            ArchiveType::Gz => Self::extract_gz(data, dir),
             ArchiveType::Zip => Self::extract_zip(data, dir),
         }
     }
@@ -93,21 +103,28 @@ where
         pb.finish_and_clear();
         log::info!(name = self.name, elapsed:? = pb.elapsed(); "Finish downloading");
 
-        if let Some((archive_type, archive_paths)) = self.archive.as_ref() {
+        let buf = if let Some((archive_type, archive_paths)) = self.archive.as_ref() {
             log::info!(name = self.name, archive:? = self.archive; "Extracting binary");
             let temp_dir = TempDir::new().unwrap();
-            archive_type.extract(&buf, &temp_dir);
-
-            let mut archive_path = temp_dir.path().to_path_buf();
-            if let Some(archive_paths) = archive_paths {
-                for path in archive_paths.into_iter() {
-                    archive_path = archive_path.join(path);
-                }
+            if let Some(buf) = archive_type.extract(&buf, &temp_dir) {
+                Some(buf)
             } else {
-                archive_path = archive_path.join(self.name);
+                let mut archive_path = temp_dir.path().to_path_buf();
+                if let Some(archive_paths) = archive_paths {
+                    for path in archive_paths.into_iter() {
+                        archive_path = archive_path.join(path);
+                    }
+                } else {
+                    archive_path = archive_path.join(self.name);
+                }
+                std::fs::copy(archive_path, &bin_path).unwrap();
+                None
             }
-            std::fs::copy(archive_path, &bin_path).unwrap();
         } else {
+            Some(buf)
+        };
+
+        if let Some(buf) = buf {
             std::fs::OpenOptions::new()
                 .write(true)
                 .create(true)
