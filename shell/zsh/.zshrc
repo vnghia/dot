@@ -1,7 +1,10 @@
 source "$ZDOTDIR/entry.zsh"
 
-# direnv
+# Rye
+source "$RYE_HOME/env"
+
+# Direnv
 eval "$(direnv hook zsh)"
 
-# starship
+# Starship
 eval "$(starship init zsh)"

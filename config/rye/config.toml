@@ -1,0 +1,11 @@
+[default]
+requires-python = ">= 3.11"
+build-system = "hatchling"
+
+[behavior]
+force-rye-managed = false
+global-python = true
+use-uv = true
+autosync = true
+venv-mark-sync-ignore = true
+fetch-with-build-info = false
