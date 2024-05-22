@@ -8,3 +8,6 @@ eval "$(direnv hook zsh)"
 
 # Starship
 eval "$(starship init zsh)"
+
+# Always source exit at the end to avoid overriding
+source "$ZDOTDIR/exit.zsh"

@@ -316,5 +316,6 @@ zsdoc/data
 
 # Local
 .local/
+**/.local.*
 
 # End of https://www.toptal.com/developers/gitignore/api/zsh,python,rust,visualstudiocode,macos,linux,direnv,rust-analyzer,windows
