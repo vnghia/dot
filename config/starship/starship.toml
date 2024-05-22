@@ -1,6 +1,6 @@
 "$schema" = 'https://starship.rs/config-schema.json'
 
-format = """[⟨](bracket) [λ](bold lambda) [⟩](bracket) $directory $git_branch$git_commit$git_status$git_state
+format = """[⟨](bracket) [λ](bold lambda) [⟩](bracket) $directory$git_branch$git_commit$git_status$git_state$fill$cmd_duration
 $character
 """
 add_newline = false
@@ -11,7 +11,7 @@ success_symbol = "[⟩](bold prompt)"
 error_symbol = "[⟩](bold error_prompt)"
 
 [directory]
-format = "[$read_only]($read_only_style)[$path]($style)"
+format = "[$read_only]($read_only_style)[$path]($style) [⟩](path)"
 truncation_length = 3
 style = "path"
 read_only = " "
@@ -23,7 +23,7 @@ repo_root_style = "repo"
 fish_style_pwd_dir_length = 2
 
 [git_branch]
-format = "[⟩](path) [$symbol$branch(:$remote_branch)]($style)"
+format = " [$symbol$branch(:$remote_branch)]($style)"
 style = "commit"
 symbol = " "
 only_attached = true
@@ -59,6 +59,13 @@ bisect = "bisect"
 am = "am"
 am_or_rebase = "am/rebase"
 
+[fill]
+symbol = " "
+
+[cmd_duration]
+format = "[⟨](duration) [$duration]($style)"
+style = "duration"
+
 [palettes.starship]
 # prompt
 lambda = "196"
@@ -84,3 +91,6 @@ modified = "220"
 staged = "121"
 renamed = "147"
 deleted = "9"
+
+# duration
+duration = "214"
