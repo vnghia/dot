@@ -71,7 +71,7 @@ pub fn entry_init(args: InitArgs) {
         pull(&Repository::open(&dot_dir).unwrap(), None, None).unwrap();
     } else {
         log::info!(repo:? = args.repo, dest:? = dot_dir; "Cloning dot repository");
-        Repository::clone(&args.repo, &dot_dir).unwrap();
+        Repository::clone_recurse(&args.repo, &dot_dir).unwrap();
     }
 
     match args.shell {
