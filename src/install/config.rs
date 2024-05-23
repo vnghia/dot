@@ -11,6 +11,7 @@ pub enum InstallConfig {
     Starship,
     Direnv,
     Rye,
+    Eza,
 }
 
 pub const STARSHIP_BINARY: Binary<[&str; 1]> = Binary {
@@ -51,12 +52,25 @@ pub const RYE_BINARY: Binary<[&str; 1]> = Binary {
     phantom_t: std::marker::PhantomData,
 };
 
+pub const EZA_BINARY: Binary<[&str; 1]> = Binary {
+    name: "eza",
+    url: formatc!(
+        "https://github.com/eza-community/eza/releases/latest/download/eza_{}.tar.gz",
+        TARGET_TRIPLET
+    ),
+    archive: Some((ArchiveType::TarGz, Some(["eza"]))),
+    version_arg: "--version",
+    phantom_c: std::marker::PhantomData,
+    phantom_t: std::marker::PhantomData,
+};
+
 impl InstallConfig {
     pub fn download<PB: AsRef<Path>>(self, bin_dir: PB) {
         match self {
             InstallConfig::Starship => STARSHIP_BINARY.download(bin_dir),
             InstallConfig::Direnv => DIRENV_BINARY.download(bin_dir),
             InstallConfig::Rye => RYE_BINARY.download(bin_dir),
+            InstallConfig::Eza => EZA_BINARY.download(bin_dir),
         }
     }
 }
@@ -83,5 +97,12 @@ mod tests {
     fn test_install_rye() {
         let bin_dir = TempDir::new().unwrap();
         InstallConfig::Rye.download(bin_dir);
+    }
+
+    #[test]
+    #[cfg(target_os = "linux")]
+    fn test_install_eza() {
+        let bin_dir = TempDir::new().unwrap();
+        InstallConfig::Eza.download(bin_dir);
     }
 }
