@@ -1,3 +1,7 @@
+# Editor
+export VISUAL="code --wait"
+export EDITOR="vim"
+
 # Rye
 export RYE_HOME="$CONFIGDIR/rye"
 
