@@ -3,7 +3,7 @@ use std::path::Path;
 use clap::ValueEnum;
 use const_format::formatc;
 
-use super::binary::{ArchiveType, Binary};
+use super::binary::{ArchiveType, Binary, VERSION_PATTERN};
 use crate::constant::target::*;
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -12,6 +12,7 @@ pub enum InstallConfig {
     Direnv,
     Rye,
     Eza,
+    Croc,
 }
 
 pub const STARSHIP_BINARY: Binary<[&str; 1]> = Binary {
@@ -64,6 +65,21 @@ pub const EZA_BINARY: Binary<[&str; 1]> = Binary {
     phantom_t: std::marker::PhantomData,
 };
 
+pub const CROC_BINARY: Binary<[&str; 1]> = Binary {
+    name: "croc",
+    url: formatc!(
+        "https://github.com/schollz/croc/releases/download/v{}/croc_v{}_{}-{}.tar.gz",
+        VERSION_PATTERN,
+        VERSION_PATTERN,
+        os::CROC,
+        arch::CROC
+    ),
+    archive: Some((ArchiveType::TarGz, Some(["croc"]))),
+    version_arg: "--version",
+    phantom_c: std::marker::PhantomData,
+    phantom_t: std::marker::PhantomData,
+};
+
 impl InstallConfig {
     pub fn download<PB: AsRef<Path>>(self, bin_dir: PB, bin_version: Option<&str>) {
         match self {
@@ -71,6 +87,7 @@ impl InstallConfig {
             InstallConfig::Direnv => DIRENV_BINARY.download(bin_dir, bin_version),
             InstallConfig::Rye => RYE_BINARY.download(bin_dir, bin_version),
             InstallConfig::Eza => EZA_BINARY.download(bin_dir, bin_version),
+            InstallConfig::Croc => CROC_BINARY.download(bin_dir, bin_version),
         }
     }
 }
@@ -104,5 +121,11 @@ mod tests {
     fn test_install_eza() {
         let bin_dir = TempDir::new().unwrap();
         InstallConfig::Eza.download(bin_dir, None);
+    }
+
+    #[test]
+    fn test_install_croc() {
+        let bin_dir = TempDir::new().unwrap();
+        InstallConfig::Croc.download(bin_dir, Some("10.0.0"));
     }
 }
