@@ -17,8 +17,8 @@ pub struct InstallArgs {
     pub bin_dir: Option<PathBuf>,
     /// Install the binary from a predefined config.
     /// Will take precedent if both config and other options are supplied.
-    #[arg(short, long, value_enum)]
-    pub config: Option<InstallConfig>,
+    #[arg(short, long = "config", value_enum)]
+    pub configs: Vec<InstallConfig>,
     #[command(flatten)]
     pub binary: BinaryArgs,
 }
@@ -35,7 +35,7 @@ pub struct BinaryArgs {
     #[arg(short = 't', long, value_enum)]
     pub archive_type: Option<ArchiveType>,
     /// The path to the binary inside archive.
-    #[arg(short = 'p', long)]
+    #[arg(short = 'p', long = "archive-path")]
     pub archive_paths: Option<Vec<String>>,
     /// Arg to print the version info of the downloaded binary.
     /// A `^` can be addded to the beginning to avoid parsing error.
@@ -57,8 +57,10 @@ pub fn entry_install(args: InstallArgs) {
         }
     });
 
-    if let Some(config) = args.config {
-        config.download(bin_dir);
+    if !args.configs.is_empty() {
+        for config in args.configs {
+            config.download(&bin_dir);
+        }
     } else {
         Binary::from(&args.binary).download(bin_dir);
     }
