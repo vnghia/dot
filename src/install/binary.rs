@@ -1,3 +1,4 @@
+use std::borrow::Cow;
 use std::fmt::Debug;
 use std::fs::Permissions;
 use std::io::{Cursor, Read, Write};
@@ -6,6 +7,7 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
 use clap::{CommandFactory, ValueEnum};
+use const_format::formatc;
 use flate2::bufread::GzDecoder;
 use indicatif::{ProgressBar, ProgressStyle};
 use tar::Archive;
@@ -17,6 +19,8 @@ use crate::Cli;
 
 // 1MiB
 const CHUNK_SIZE: usize = 1024 * 1024;
+
+pub const VERSION_PATTERN: &str = "%VERSION%";
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
 pub enum ArchiveType {
@@ -71,9 +75,25 @@ where
     'c: 't,
     's: 't,
 {
-    pub fn download<PB: AsRef<Path>>(&'s self, bin_dir: PB) {
+    pub fn download<PB: AsRef<Path>>(&'s self, bin_dir: PB, bin_version: Option<&str>) {
         let bin_path = bin_dir.as_ref().join(self.name);
-        log::info!(name = self.name, url = self.url; "Downloading binary");
+        let url: Cow<'_, str> = if self.url.contains(VERSION_PATTERN) {
+            let Some(bin_version) = bin_version else {
+                Cli::command()
+                    .error(
+                        clap::error::ErrorKind::MissingRequiredArgument,
+                        formatc!(
+                            "--bin-version is required because {} is in string url",
+                            VERSION_PATTERN
+                        ),
+                    )
+                    .exit()
+            };
+            self.url.replace(VERSION_PATTERN, bin_version).into()
+        } else {
+            self.url.into()
+        };
+        log::info!(name = self.name, url = url.as_ref(); "Downloading binary");
 
         let pb = ProgressBar::new_spinner();
         pb.set_style(
@@ -85,7 +105,7 @@ where
 
         let mut buf = vec![];
         let mut buf_len = 0;
-        let mut reader = ureq::get(self.url).call().unwrap().into_reader();
+        let mut reader = ureq::get(&url).call().unwrap().into_reader();
         loop {
             buf.extend_from_slice(&[0; CHUNK_SIZE]);
             let chunk = &mut buf.as_mut_slice()[buf_len..buf_len + CHUNK_SIZE];

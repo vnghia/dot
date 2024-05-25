@@ -19,6 +19,8 @@ pub struct InstallArgs {
     /// Will take precedent if both config and other options are supplied.
     #[arg(short, long = "config", value_enum)]
     pub configs: Vec<InstallConfig>,
+    #[arg(long)]
+    pub bin_version: Option<String>,
     #[command(flatten)]
     pub binary: BinaryArgs,
 }
@@ -59,9 +61,9 @@ pub fn entry_install(args: InstallArgs) {
 
     if !args.configs.is_empty() {
         for config in args.configs {
-            config.download(&bin_dir);
+            config.download(&bin_dir, args.bin_version.as_deref());
         }
     } else {
-        Binary::from(&args.binary).download(bin_dir);
+        Binary::from(&args.binary).download(bin_dir, args.bin_version.as_deref());
     }
 }

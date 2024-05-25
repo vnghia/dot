@@ -65,12 +65,12 @@ pub const EZA_BINARY: Binary<[&str; 1]> = Binary {
 };
 
 impl InstallConfig {
-    pub fn download<PB: AsRef<Path>>(self, bin_dir: PB) {
+    pub fn download<PB: AsRef<Path>>(self, bin_dir: PB, bin_version: Option<&str>) {
         match self {
-            InstallConfig::Starship => STARSHIP_BINARY.download(bin_dir),
-            InstallConfig::Direnv => DIRENV_BINARY.download(bin_dir),
-            InstallConfig::Rye => RYE_BINARY.download(bin_dir),
-            InstallConfig::Eza => EZA_BINARY.download(bin_dir),
+            InstallConfig::Starship => STARSHIP_BINARY.download(bin_dir, bin_version),
+            InstallConfig::Direnv => DIRENV_BINARY.download(bin_dir, bin_version),
+            InstallConfig::Rye => RYE_BINARY.download(bin_dir, bin_version),
+            InstallConfig::Eza => EZA_BINARY.download(bin_dir, bin_version),
         }
     }
 }
@@ -84,25 +84,25 @@ mod tests {
     #[test]
     fn test_install_starship() {
         let bin_dir = TempDir::new().unwrap();
-        InstallConfig::Starship.download(bin_dir);
+        InstallConfig::Starship.download(bin_dir, None);
     }
 
     #[test]
     fn test_install_direnv() {
         let bin_dir = TempDir::new().unwrap();
-        InstallConfig::Direnv.download(bin_dir);
+        InstallConfig::Direnv.download(bin_dir, None);
     }
 
     #[test]
     fn test_install_rye() {
         let bin_dir = TempDir::new().unwrap();
-        InstallConfig::Rye.download(bin_dir);
+        InstallConfig::Rye.download(bin_dir, None);
     }
 
     #[test]
     #[cfg(target_os = "linux")]
     fn test_install_eza() {
         let bin_dir = TempDir::new().unwrap();
-        InstallConfig::Eza.download(bin_dir);
+        InstallConfig::Eza.download(bin_dir, None);
     }
 }
