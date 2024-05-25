@@ -2,6 +2,9 @@
 export VISUAL="code --wait"
 export EDITOR="vim"
 
+# Python
+export PYTHONSTARTUP="$DOTDIR/python/pythonrc.py"
+
 # Rye
 export RYE_HOME="$CONFIGDIR/rye"
 
