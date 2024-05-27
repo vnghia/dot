@@ -1,0 +1,58 @@
+[init]
+defaultBranch = main
+
+[user]
+useConfigOnly = true
+
+[color]
+ui = auto
+
+[pull]
+ff = only
+
+[alias]
+# Add
+a = add --all
+
+# Commit
+ca = commit --amend
+cat = ca --no-edit
+cm = commit -m
+ce = commit --allow-empty -m
+
+# Checkout
+co = checkout
+
+# Branch
+b = branch
+cb = b --show-current
+
+# Push
+p = push
+pf = p --force
+pfl = p --force-with-lease
+
+# Log
+l = log --oneline
+la = l --all
+lp = l -p
+lpa = lp --all
+lg = l --graph --decorate --pretty=oneline --abbrev-commit
+lga = lg --all
+
+# Fetch
+f = fetch
+fo = fetch origin
+
+# Reset
+r = reset
+rh = reset --hard
+ro = "!git fo && git rh origin/${1:-$(git cb)} #"
+
+# Rebase
+rb = rebase
+rbi = rb -i
+rbtd = rb --edit-todo
+rbc = -c core.editor=true rb --continue
+rbr = rbi --root
+rbh = "!git rbi HEAD~$1 #"
