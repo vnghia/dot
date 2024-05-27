@@ -28,6 +28,7 @@ pub mod arch {
     pub const FULL: &str = built_info::CFG_TARGET_ARCH;
 
     pub const CROC: &str = "64bit";
+    pub const GO: &str = "x86_64";
 }
 
 #[cfg(target_arch = "aarch64")]
@@ -38,4 +39,5 @@ pub mod arch {
     pub const FULL: &str = built_info::CFG_TARGET_ARCH;
 
     pub const CROC: &str = "ARM64";
+    pub const GO: &str = "arm64";
 }

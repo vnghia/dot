@@ -1,7 +1,7 @@
 use std::path::Path;
 
 use clap::ValueEnum;
-use const_format::{formatc, str_replace};
+use const_format::{formatc, map_ascii_case, str_replace, Case};
 
 use super::binary::{ArchiveType, Binary, VERSION_PATTERN};
 use crate::constant::target::*;
@@ -14,6 +14,7 @@ pub enum InstallConfig {
     Eza,
     Croc,
     Just,
+    Skm,
 }
 
 pub const STARSHIP_BINARY: Binary<[&str; 1]> = Binary {
@@ -58,7 +59,7 @@ pub const EZA_BINARY: Binary<[&str; 1]> = Binary {
     name: "eza",
     url: formatc!(
         "https://github.com/eza-community/eza/releases/latest/download/eza_{}.tar.gz",
-        TARGET_TRIPLET
+        TARGET_TRIPLET,
     ),
     archive: Some((ArchiveType::TarGz, Some(["eza"]))),
     version_arg: "--version",
@@ -73,7 +74,7 @@ pub const CROC_BINARY: Binary<[&str; 1]> = Binary {
         VERSION_PATTERN,
         VERSION_PATTERN,
         os::CROC,
-        arch::CROC
+        arch::CROC,
     ),
     archive: Some((ArchiveType::TarGz, Some(["croc"]))),
     version_arg: "--version",
@@ -87,9 +88,24 @@ pub const JUST_BINARY: Binary<[&str; 1]> = Binary {
         "https://github.com/casey/just/releases/download/{}/just-{}-{}.tar.gz",
         VERSION_PATTERN,
         VERSION_PATTERN,
-        str_replace!(TARGET_TRIPLET, "gnu", "musl")
+        str_replace!(TARGET_TRIPLET, "gnu", "musl"),
     ),
     archive: Some((ArchiveType::TarGz, Some(["just"]))),
+    version_arg: "--version",
+    phantom_c: std::marker::PhantomData,
+    phantom_t: std::marker::PhantomData,
+};
+
+pub const SKM_BINARY: Binary<[&str; 1]> = Binary {
+    name: "skm",
+    url: formatc!(
+        "https://github.com/TimothyYe/skm/releases/download/v{}/skm_{}_{}_{}.tar.gz",
+        VERSION_PATTERN,
+        VERSION_PATTERN,
+        map_ascii_case!(Case::Pascal, os::UNAME),
+        arch::GO,
+    ),
+    archive: Some((ArchiveType::TarGz, Some(["skm"]))),
     version_arg: "--version",
     phantom_c: std::marker::PhantomData,
     phantom_t: std::marker::PhantomData,
@@ -104,6 +120,7 @@ impl InstallConfig {
             InstallConfig::Eza => EZA_BINARY.download(bin_dir, bin_version),
             InstallConfig::Croc => CROC_BINARY.download(bin_dir, bin_version),
             InstallConfig::Just => JUST_BINARY.download(bin_dir, bin_version),
+            InstallConfig::Skm => SKM_BINARY.download(bin_dir, bin_version),
         }
     }
 }
@@ -149,5 +166,11 @@ mod tests {
     fn test_install_just() {
         let bin_dir = TempDir::new().unwrap();
         InstallConfig::Just.download(bin_dir, Some("1.27.0"));
+    }
+
+    #[test]
+    fn test_install_skm() {
+        let bin_dir = TempDir::new().unwrap();
+        InstallConfig::Skm.download(bin_dir, Some("0.8.6"));
     }
 }
