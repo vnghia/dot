@@ -2,13 +2,11 @@ use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Write};
 use std::path::PathBuf;
 
-use clap::CommandFactory;
 use const_format::formatc;
 use convert_case::Casing;
 
-use super::SshConfigArgs;
+use super::SshArgs;
 use crate::prefix::Prefix;
-use crate::Cli;
 
 const SSH_CONFIG_DIR_NAME: &str = "config.d";
 const SSH_INCLUDE_CONDIG_DIR_LINE: &str = formatc!("Include {}/*", SSH_CONFIG_DIR_NAME);
@@ -101,7 +99,7 @@ impl SshConfig {
             ssh_content += "\tUseKeychain yes\n";
         }
 
-        log::debug!(path:? = ssh_config_path; "Generating ssh config");
+        log::info!(path:? = ssh_config_path; "Generating ssh config");
         log::trace!(content:% = ssh_content; "Generating ssh config");
 
         std::fs::OpenOptions::new()
@@ -121,27 +119,11 @@ impl SshConfig {
     }
 }
 
-impl From<SshConfigArgs> for SshConfig {
-    fn from(value: SshConfigArgs) -> Self {
-        let Some(key) = value.key else {
-            Cli::command()
-                .error(
-                    clap::error::ErrorKind::MissingRequiredArgument,
-                    "--key is required if --config is not used",
-                )
-                .exit()
-        };
-        let Some(hostname) = value.hostname else {
-            Cli::command()
-                .error(
-                    clap::error::ErrorKind::MissingRequiredArgument,
-                    "--hostname is required if --config is not used",
-                )
-                .exit()
-        };
+impl From<SshArgs> for SshConfig {
+    fn from(value: SshArgs) -> Self {
         Self {
-            key,
-            hostname,
+            key: value.key,
+            hostname: value.hostname,
             comment: value.comment,
             additions: value.addition.into_iter().collect::<HashMap<_, _>>(),
         }
