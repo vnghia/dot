@@ -157,7 +157,14 @@ where
         std::fs::set_permissions(&bin_path, Permissions::from_mode(0o777)).unwrap();
 
         log::info!(name = self.name, arg = self.version_arg; "Downloaded binary version");
-        std::process::Command::new(&bin_path).arg(self.version_arg).spawn().unwrap();
+        std::process::Command::new(&bin_path)
+            .arg(self.version_arg)
+            .spawn()
+            .unwrap()
+            .wait()
+            .unwrap()
+            .exit_ok()
+            .unwrap();
     }
 }
 

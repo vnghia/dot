@@ -8,6 +8,8 @@ description = "Dot utility"
 clap = { version = "4.5.4", features = ["derive", "string"] }
 clap-verbosity-flag = { version = "2.2.0" }
 const_format = { version = "0.2.32", features = ["fmt"] }
+convert_case = { version = "0.6.0" }
+derivative = { version = "2.2.0" }
 env_logger = { version = "0.11.3", default-features = false, features = [
     "auto-color",
     "unstable-kv",

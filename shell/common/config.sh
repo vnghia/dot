@@ -9,7 +9,7 @@ export PYTHONSTARTUP="$DOTDIR/python/pythonrc.py"
 export RYE_HOME="$CONFIGDIR/rye"
 
 # Skm
-export SKM_STORE_PATH="$CONFIGDIR/skm"
+export SKM_STORE_PATH="$LOCALDIR/skm"
 
 # Git
 export GIT_CONFIG_GLOBAL="$CONFIGDIR/git/.gitconfig"

@@ -26,6 +26,14 @@ impl Prefix {
         Self(prefix)
     }
 
+    pub fn create_dir_all(&self) {
+        std::fs::create_dir_all(self.ssh()).unwrap();
+        std::fs::create_dir_all(self.code()).unwrap();
+        std::fs::create_dir_all(self.local()).unwrap();
+        std::fs::create_dir_all(self.bin()).unwrap();
+        std::fs::create_dir_all(self.skm()).unwrap();
+    }
+
     pub fn prefix(&self) -> &Path {
         &self.0
     }
@@ -34,8 +42,12 @@ impl Prefix {
         self.prefix().join(".dot")
     }
 
+    pub fn ssh(&self) -> PathBuf {
+        self.prefix().join(".ssh")
+    }
+
     pub fn code(&self) -> PathBuf {
-        self.prefix().join(".code")
+        self.prefix().join("code")
     }
 
     pub fn local(&self) -> PathBuf {
@@ -44,5 +56,16 @@ impl Prefix {
 
     pub fn bin(&self) -> PathBuf {
         self.local().join("bin")
+    }
+
+    pub fn skm(&self) -> PathBuf {
+        self.local().join("skm")
+    }
+}
+
+#[cfg(test)]
+impl From<&tempfile::TempDir> for Prefix {
+    fn from(value: &tempfile::TempDir) -> Self {
+        Self::new(Some(value.path().into()))
     }
 }

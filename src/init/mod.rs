@@ -72,14 +72,11 @@ pub fn entry_init(prefix: &Prefix, args: InitArgs) {
 
     match args.shell {
         Shell::Zsh => {
-            zsh::generate_zshenv(prefix.prefix(), &dot_dir, &code_dir, &local_dir, &bin_dir)
+            zsh::generate_zshenv(prefix.prefix(), &dot_dir, &code_dir, local_dir, &bin_dir)
         }
     }
 
-    std::fs::create_dir_all(&code_dir).unwrap();
-    std::fs::create_dir_all(&local_dir).unwrap();
-    std::fs::create_dir_all(&bin_dir).unwrap();
-
+    prefix.create_dir_all();
     let from_dot = std::env::current_exe().unwrap().canonicalize().unwrap();
     let to_dot = bin_dir.join("dot");
     if from_dot != to_dot {

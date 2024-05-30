@@ -1,5 +1,6 @@
 #![deny(clippy::all)]
 #![feature(const_mut_refs)]
+#![feature(exit_status_error)]
 
 mod constant;
 mod git;
@@ -8,14 +9,17 @@ mod install;
 mod prefix;
 use std::path::PathBuf;
 
+mod ssh;
 use clap::{Args, Parser, Subcommand};
 use clap_verbosity_flag::{InfoLevel, Verbosity};
 use init::InitArgs;
 use install::InstallArgs;
 use prefix::Prefix;
+use ssh::SshArgs;
 
 use crate::init::entry_init;
 use crate::install::entry_install;
+use crate::ssh::entry_ssh;
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = None)]
@@ -33,6 +37,8 @@ pub enum Command {
     Init(InitArgs),
     /// Install binary from internet.
     Install(InstallArgs),
+    /// Generate ssh config with host.
+    Ssh(SshArgs),
 }
 
 #[derive(Debug, Args)]
@@ -60,5 +66,6 @@ pub fn entry(cli: Cli) {
     match cli.command {
         Command::Init(args) => entry_init(&prefix, args),
         Command::Install(args) => entry_install(&prefix, args),
+        Command::Ssh(args) => entry_ssh(&prefix, args),
     }
 }

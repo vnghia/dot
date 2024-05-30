@@ -28,14 +28,14 @@ pub struct BinaryArgs {
     #[arg(short, long)]
     pub url: Option<String>,
     /// Archive type of the url
-    #[arg(short = 't', long, value_enum)]
+    #[arg(long, value_enum)]
     pub archive_type: Option<ArchiveType>,
     /// The path to the binary inside archive.
-    #[arg(short = 'p', long = "archive-path")]
+    #[arg(long = "archive_path")]
     pub archive_paths: Option<Vec<String>>,
     /// Arg to print the version info of the downloaded binary.
     /// A `^` can be addded to the beginning to avoid parsing error.
-    #[arg(short = 'a', long)]
+    #[arg(long)]
     pub version_arg: Option<String>,
 }
 
