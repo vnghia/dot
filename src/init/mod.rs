@@ -1,19 +1,16 @@
 mod zsh;
 
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use clap::{Args, CommandFactory, ValueEnum};
 use git2::Repository;
-use homedir::get_my_home;
 
 use crate::git::pull;
+use crate::prefix::Prefix;
 use crate::Cli;
 
 #[derive(Debug, Args)]
 pub struct InitArgs {
-    /// Prefix to initialize dot environment into.
-    #[arg(short, long, default_value = get_my_home().unwrap().unwrap().into_os_string())]
-    pub prefix: PathBuf,
     /// Url of the dot git repository.
     #[arg(short, long, value_enum, default_value = "https://github.com/vnghia/dotfile-rs.git")]
     pub repo: String,
@@ -46,12 +43,11 @@ fn copy_dir_all<PS: AsRef<Path>, PD: AsRef<Path>>(src: PS, dst: PD) -> std::io::
     Ok(())
 }
 
-pub fn entry_init(args: InitArgs) {
-    let prefix = args.prefix.canonicalize().unwrap();
-    let dot_dir = prefix.join(".dot");
-    let code_dir = prefix.join("code");
-    let local_dir = dot_dir.join(".local");
-    let bin_dir = local_dir.join("bin");
+pub fn entry_init(prefix: &Prefix, args: InitArgs) {
+    let dot_dir = prefix.dot();
+    let code_dir = prefix.code();
+    let local_dir = prefix.local();
+    let bin_dir = prefix.bin();
     log::info!(dot:? = dot_dir, code:? = code_dir; "Directory");
 
     if args.copy {
@@ -75,7 +71,9 @@ pub fn entry_init(args: InitArgs) {
     }
 
     match args.shell {
-        Shell::Zsh => zsh::generate_zshenv(&prefix, &dot_dir, &code_dir, &local_dir, &bin_dir),
+        Shell::Zsh => {
+            zsh::generate_zshenv(prefix.prefix(), &dot_dir, &code_dir, &local_dir, &bin_dir)
+        }
     }
 
     std::fs::create_dir_all(&code_dir).unwrap();

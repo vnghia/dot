@@ -1,20 +1,14 @@
 mod binary;
 mod config;
 
-use std::path::PathBuf;
-
-use clap::{Args, CommandFactory};
+use clap::Args;
 
 use self::binary::{ArchiveType, Binary};
 use self::config::InstallConfig;
-use super::constant::env::BINDIR_KEY;
-use crate::Cli;
+use crate::prefix::Prefix;
 
 #[derive(Debug, Args)]
 pub struct InstallArgs {
-    /// Directory to install the binary into, default to `$BINDIR`.
-    #[arg(short, long)]
-    pub bin_dir: Option<PathBuf>,
     /// Install the binary from a predefined config.
     /// Will take precedent if both config and other options are supplied.
     #[arg(short, long = "config", value_enum)]
@@ -45,20 +39,8 @@ pub struct BinaryArgs {
     pub version_arg: Option<String>,
 }
 
-pub fn entry_install(args: InstallArgs) {
-    let bin_dir = args.bin_dir.unwrap_or_else(|| {
-        if let Ok(bin_dir) = std::env::var(BINDIR_KEY) {
-            bin_dir.into()
-        } else {
-            Cli::command()
-                .error(
-                    clap::error::ErrorKind::MissingRequiredArgument,
-                    "--bin-dir is required if environment `BINDIR` is empty",
-                )
-                .exit()
-        }
-    });
-
+pub fn entry_install(prefix: &Prefix, args: InstallArgs) {
+    let bin_dir = prefix.bin();
     if !args.configs.is_empty() {
         for config in args.configs {
             config.download(&bin_dir, args.bin_version.as_deref());

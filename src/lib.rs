@@ -5,10 +5,14 @@ mod constant;
 mod git;
 mod init;
 mod install;
+mod prefix;
+use std::path::PathBuf;
+
 use clap::{Args, Parser, Subcommand};
 use clap_verbosity_flag::{InfoLevel, Verbosity};
 use init::InitArgs;
 use install::InstallArgs;
+use prefix::Prefix;
 
 use crate::init::entry_init;
 use crate::install::entry_install;
@@ -35,6 +39,13 @@ pub enum Command {
 pub struct Global {
     #[command(flatten)]
     pub verbose: Verbosity<InfoLevel>,
+    /// Prefix of the dot environment.
+    /// Will be resolved in this order:
+    /// 1. The argument supplied to this option.
+    /// 2. The parent folder of $DOTDIR.
+    /// 3. The home directory of current user.
+    #[arg(short, long, global = true)]
+    pub prefix: Option<PathBuf>,
 }
 
 pub fn entry(cli: Cli) {
@@ -45,8 +56,9 @@ pub fn entry(cli: Cli) {
         .init();
     log::trace!("\n{:#?}", cli);
 
+    let prefix = Prefix::new(cli.global.prefix);
     match cli.command {
-        Command::Init(args) => entry_init(args),
-        Command::Install(args) => entry_install(args),
+        Command::Init(args) => entry_init(&prefix, args),
+        Command::Install(args) => entry_install(&prefix, args),
     }
 }

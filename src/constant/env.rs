@@ -1,1 +1,1 @@
-pub const BINDIR_KEY: &str = "BINDIR";
+pub const DOTDIR_KEY: &str = "DOTDIR";
