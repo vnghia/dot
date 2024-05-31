@@ -8,6 +8,8 @@ use crate::constant::env::DOTDIR_KEY;
 pub struct Prefix(PathBuf);
 
 impl Prefix {
+    pub const SSH_CONFIG_DIR_NAME: &'static str = "config.d";
+
     pub fn new(prefix: Option<PathBuf>) -> Self {
         let prefix = if let Some(prefix) = prefix {
             log::debug!("Prefix from command line");
@@ -28,6 +30,7 @@ impl Prefix {
 
     pub fn create_dir_all(&self) {
         std::fs::create_dir_all(self.ssh()).unwrap();
+        std::fs::create_dir_all(self.ssh_config()).unwrap();
         std::fs::create_dir_all(self.code()).unwrap();
         std::fs::create_dir_all(self.local()).unwrap();
         std::fs::create_dir_all(self.bin()).unwrap();
@@ -44,6 +47,10 @@ impl Prefix {
 
     pub fn ssh(&self) -> PathBuf {
         self.prefix().join(".ssh")
+    }
+
+    pub fn ssh_config(&self) -> PathBuf {
+        self.ssh().join(Self::SSH_CONFIG_DIR_NAME)
     }
 
     pub fn code(&self) -> PathBuf {

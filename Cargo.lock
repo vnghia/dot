@@ -452,6 +452,7 @@ dependencies = [
  "tar",
  "tempfile",
  "ureq",
+ "url",
  "zip",
 ]
 

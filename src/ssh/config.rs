@@ -8,8 +8,7 @@ use convert_case::Casing;
 use super::SshArgs;
 use crate::prefix::Prefix;
 
-const SSH_CONFIG_DIR_NAME: &str = "config.d";
-const SSH_INCLUDE_CONDIG_DIR_LINE: &str = formatc!("Include {}/*", SSH_CONFIG_DIR_NAME);
+const SSH_INCLUDE_CONDIG_DIR_LINE: &str = formatc!("Include {}/*", Prefix::SSH_CONFIG_DIR_NAME);
 
 pub struct SshConfig {
     key: String,
@@ -45,7 +44,7 @@ impl SshConfig {
             log::info!(to:? = ssh_config_path; "Appending include config line");
             ssh_config.write_all(formatc!("{}\n", SSH_INCLUDE_CONDIG_DIR_LINE).as_bytes()).unwrap();
         }
-        std::fs::create_dir_all(ssh_dir.join(SSH_CONFIG_DIR_NAME)).unwrap();
+        std::fs::create_dir_all(prefix.ssh_config()).unwrap();
     }
 
     fn generate_key(&self, prefix: &Prefix) {
@@ -79,7 +78,7 @@ impl SshConfig {
     }
 
     fn generate_ssh_config(&self, prefix: &Prefix) {
-        let ssh_config_path = prefix.ssh().join(SSH_CONFIG_DIR_NAME).join(&self.key);
+        let ssh_config_path = prefix.ssh_config().join(&self.key);
         let key_path = self.check_key(prefix);
 
         let mut ssh_content = "# AUTO GENERATED FILE. DO NOT EDIT\n\n".to_string();
@@ -126,6 +125,43 @@ impl From<SshArgs> for SshConfig {
             hostname: value.hostname,
             comment: value.comment,
             additions: value.addition.into_iter().collect::<HashMap<_, _>>(),
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    impl SshConfig {
+        pub fn fake(prefix: &Prefix, key: String, hostname: String) -> Self {
+            let key_dir = prefix.skm().join(&key);
+            std::fs::create_dir_all(&key_dir).unwrap();
+            let public_path = key_dir.join("id_ed25519.pub");
+            let private_path = key_dir.join("id_ed25519");
+            std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(public_path)
+                .unwrap()
+                .write_all(b"public")
+                .unwrap();
+            std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(private_path)
+                .unwrap()
+                .write_all(b"private")
+                .unwrap();
+
+            let ssh_config = SshConfig {
+                key,
+                hostname,
+                comment: None,
+                additions: [("snake_case".to_owned(), "yes".to_owned())].into_iter().collect(),
+            };
+            ssh_config.generate_ssh_config(prefix);
+            ssh_config
         }
     }
 }
@@ -182,45 +218,17 @@ mod tests {
     }
 
     #[test]
-    fn test_include_ssh_config_generate_config() {
+    fn test_generate_config() {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();
         prefix.create_dir_all();
-        let config_dir = prefix.ssh().join(SSH_CONFIG_DIR_NAME);
-        std::fs::create_dir_all(&config_dir).unwrap();
-        let config_path = config_dir.join("key");
+        let config_path = prefix.ssh_config().join("key");
 
-        let key_dir = prefix.skm().join("key");
-        std::fs::create_dir_all(&key_dir).unwrap();
-        let public_path = key_dir.join("id_ed25519.pub");
-        let private_path = key_dir.join("id_ed25519");
-        std::fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(public_path)
-            .unwrap()
-            .write_all(b"public")
-            .unwrap();
-        std::fs::OpenOptions::new()
-            .create(true)
-            .append(true)
-            .open(&private_path)
-            .unwrap()
-            .write_all(b"private")
-            .unwrap();
-
-        SshConfig {
-            key: "key".into(),
-            hostname: "host".into(),
-            comment: None,
-            additions: [("snake_case".to_owned(), "yes".to_owned())].into_iter().collect(),
-        }
-        .generate_ssh_config(&prefix);
-
+        SshConfig::fake(&prefix, "key".into(), "host".into());
         let mut ssh_content = "# AUTO GENERATED FILE. DO NOT EDIT\n\nHost key\n\tHostname \
                                host\n\tAddKeysToAgent yes\n\tIdentitiesOnly yes\n\tIdentityFile "
             .to_string()
-            + private_path.to_str().unwrap()
+            + prefix.skm().join("key").join("id_ed25519").to_str().unwrap()
             + "\n";
         ssh_content += "\tSnakeCase yes\n";
         #[cfg(target_os = "macos")]

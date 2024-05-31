@@ -1,22 +1,26 @@
 #![deny(clippy::all)]
 #![feature(const_mut_refs)]
 #![feature(exit_status_error)]
+#![feature(let_chains)]
 
 mod constant;
 mod git;
 mod init;
 mod install;
 mod prefix;
+mod utils;
 use std::path::PathBuf;
 
 mod ssh;
 use clap::{Args, Parser, Subcommand};
 use clap_verbosity_flag::{InfoLevel, Verbosity};
+use git::GitArgs;
 use init::InitArgs;
 use install::InstallArgs;
 use prefix::Prefix;
 use ssh::SshArgs;
 
+use crate::git::entry_git;
 use crate::init::entry_init;
 use crate::install::entry_install;
 use crate::ssh::entry_ssh;
@@ -39,6 +43,8 @@ pub enum Command {
     Install(InstallArgs),
     /// Generate ssh config with host.
     Ssh(SshArgs),
+    /// Utility to work with git repository.
+    Git(GitArgs),
 }
 
 #[derive(Debug, Args)]
@@ -67,5 +73,6 @@ pub fn entry(cli: Cli) {
         Command::Init(args) => entry_init(&prefix, args),
         Command::Install(args) => entry_install(&prefix, args),
         Command::Ssh(args) => entry_ssh(&prefix, args),
+        Command::Git(args) => entry_git(&prefix, args),
     }
 }
