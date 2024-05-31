@@ -46,10 +46,12 @@ pub fn open_repo(path: Option<PathBuf>) -> Repository {
 }
 
 pub fn convert_remote(url: &str, host: &str, hostname: &str) -> Option<String> {
-    if let Ok(url) = Url::parse(url) {
+    if let Ok(url) = Url::parse(url)
+        && (url.scheme() == "http" || url.scheme() == "https")
+    {
         let old_host = url.host().unwrap().to_string();
         if old_host == hostname || old_host == host {
-            Some(format!("git@{}:{}", host, url.path().strip_prefix('/').unwrap()))
+            Some(format!("{}:{}", host, url.path().strip_prefix('/').unwrap()))
         } else {
             panic!(
                 "remote host ({}) does not match host ({}) or hostname ({})",
@@ -57,7 +59,7 @@ pub fn convert_remote(url: &str, host: &str, hostname: &str) -> Option<String> {
             )
         }
     } else {
-        let old_host = url.split_once(':').unwrap().0.strip_prefix("git@").unwrap();
+        let old_host = url.split_once(':').unwrap().0.split('@').last().unwrap();
         if old_host == host {
             None
         } else if old_host == hostname {
@@ -80,7 +82,7 @@ mod tests {
     fn test_convert_remote_http() {
         assert_eq!(
             convert_remote("https://git.test/username/repo.git", "host", "git.test").unwrap(),
-            "git@host:username/repo.git"
+            "host:username/repo.git"
         )
     }
 
@@ -88,7 +90,7 @@ mod tests {
     fn test_convert_remote_http_same_host() {
         assert_eq!(
             convert_remote("https://host/username/repo.git", "host", "git.test").unwrap(),
-            "git@host:username/repo.git"
+            "host:username/repo.git"
         )
     }
 
@@ -101,7 +103,20 @@ mod tests {
     }
 
     #[test]
+    fn test_convert_remote_ssh_no_user() {
+        assert_eq!(
+            convert_remote("git.test:username/repo.git", "host", "git.test").unwrap(),
+            "host:username/repo.git"
+        )
+    }
+
+    #[test]
     fn test_convert_remote_ssh_same_host() {
         assert!(convert_remote("git@host:username/repo.git", "host", "git.test").is_none())
+    }
+
+    #[test]
+    fn test_convert_remote_ssh_same_host_no_user() {
+        assert!(convert_remote("host:username/repo.git", "host", "git.test").is_none())
     }
 }
