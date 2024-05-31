@@ -46,6 +46,9 @@ pub fn entry_install(prefix: &Prefix, args: InstallArgs) {
             config.download(&bin_dir, args.bin_version.as_deref());
         }
     } else {
-        Binary::from(&args.binary).download(bin_dir, args.bin_version.as_deref());
+        match Binary::try_from(&args.binary) {
+            Ok(binary) => binary.download(bin_dir, args.bin_version.as_deref()),
+            Err(e) => e.exit(),
+        }
     }
 }

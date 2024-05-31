@@ -5,7 +5,7 @@ use std::sync::OnceLock;
 use git2::Repository;
 use serde::Deserialize;
 
-use super::utils::open_repo;
+use super::utils::{get_default_profile, open_repo};
 use super::{GitProfileArgs, GitProfileKeyArgs};
 use crate::git::utils::convert_remote;
 use crate::prefix::Prefix;
@@ -117,15 +117,17 @@ impl GitProfile {
     }
 }
 
-impl From<GitProfileArgs> for GitProfile {
-    fn from(value: GitProfileArgs) -> Self {
-        let key = unwrap_or_missing_argument(value.key, "key");
-        let name = unwrap_or_missing_argument(value.name, "name");
-        let email = unwrap_or_missing_argument(value.email, "email");
-        Self {
+impl TryFrom<GitProfileArgs> for GitProfile {
+    type Error = clap::Error;
+
+    fn try_from(value: GitProfileArgs) -> Result<Self, Self::Error> {
+        let key = unwrap_or_missing_argument(value.key, "key")?;
+        let name = unwrap_or_missing_argument(value.name, "name")?;
+        let email = unwrap_or_missing_argument(value.email, "email")?;
+        Ok(Self {
             key,
             config: GitConfig { name, email, additions: value.additions.into_iter().collect() },
-        }
+        })
     }
 }
 
@@ -133,7 +135,17 @@ pub fn entry_git_profile(prefix: &Prefix, args: GitProfileKeyArgs) {
     if let Some(config) = args.config {
         GitProfile::load_predefined_profile(prefix).get(&config).unwrap().set(prefix)
     } else {
-        GitProfile::from(args.profile).set(prefix)
+        match GitProfile::try_from(args.profile) {
+            Ok(profile) => profile.set(prefix),
+            Err(e) => {
+                if let Some(config) = get_default_profile() {
+                    log::info!(config:% = config; "Use config from environment variable");
+                    GitProfile::load_predefined_profile(prefix).get(&config).unwrap().set(prefix)
+                } else {
+                    e.exit()
+                }
+            }
+        }
     }
 }
 

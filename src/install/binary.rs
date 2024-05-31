@@ -169,15 +169,17 @@ where
     }
 }
 
-impl<'s, 'a, 'b, 'c, 'd, 't> From<&'s BinaryArgs> for Binary<'a, 'b, 'c, 'd, 't, Vec<&'c str>>
+impl<'s, 'a, 'b, 'c, 'd, 't> TryFrom<&'s BinaryArgs> for Binary<'a, 'b, 'c, 'd, 't, Vec<&'c str>>
 where
     's: 'a + 'b + 'c + 'd + 't,
 {
-    fn from(value: &'s BinaryArgs) -> Self {
-        let name = unwrap_or_missing_argument(value.name.as_deref(), "name");
-        let url = unwrap_or_missing_argument(value.url.as_deref(), "url");
-        let version_arg = unwrap_or_missing_argument(value.version_arg.as_deref(), "version-arg");
-        Self {
+    type Error = clap::Error;
+
+    fn try_from(value: &'s BinaryArgs) -> Result<Self, Self::Error> {
+        let name = unwrap_or_missing_argument(value.name.as_deref(), "name")?;
+        let url = unwrap_or_missing_argument(value.url.as_deref(), "url")?;
+        let version_arg = unwrap_or_missing_argument(value.version_arg.as_deref(), "version-arg")?;
+        Ok(Self {
             name,
             url,
             archive: value.archive_type.map(|t| {
@@ -186,6 +188,6 @@ where
             version_arg: version_arg.trim_matches('^'),
             phantom_c: std::marker::PhantomData,
             phantom_t: std::marker::PhantomData,
-        }
+        })
     }
 }

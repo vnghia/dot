@@ -30,10 +30,24 @@ pub struct SshKeyArgs {
     addition: Vec<(String, String)>,
 }
 
+pub fn get_default_key() -> Option<String> {
+    std::env::var("DOT_SSH_DEFAULT_KEY").ok()
+}
+
 pub fn entry_ssh(prefix: &Prefix, args: SshArgs) {
     if let Some(config) = args.config {
         SshKey::load_predefined_key(prefix).get(&config).unwrap().generate(prefix)
     } else {
-        SshKey::from(args.key).generate(prefix);
+        match SshKey::try_from(args.key) {
+            Ok(key) => key.generate(prefix),
+            Err(e) => {
+                if let Some(config) = get_default_key() {
+                    log::info!(config:% = config; "Use config from environment variable");
+                    SshKey::load_predefined_key(prefix).get(&config).unwrap().generate(prefix)
+                } else {
+                    e.exit()
+                }
+            }
+        }
     }
 }

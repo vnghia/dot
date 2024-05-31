@@ -143,18 +143,20 @@ impl SshKey {
     }
 }
 
-impl From<SshKeyArgs> for SshKey {
-    fn from(value: SshKeyArgs) -> Self {
-        let key = unwrap_or_missing_argument(value.key, "key");
-        let hostname = unwrap_or_missing_argument(value.hostname, "hostname");
-        Self {
+impl TryFrom<SshKeyArgs> for SshKey {
+    type Error = clap::Error;
+
+    fn try_from(value: SshKeyArgs) -> Result<Self, Self::Error> {
+        let key = unwrap_or_missing_argument(value.key, "key")?;
+        let hostname = unwrap_or_missing_argument(value.hostname, "hostname")?;
+        Ok(Self {
             key,
             config: SshConfig {
                 hostname,
                 comment: value.comment,
                 additions: value.addition.into_iter().collect(),
             },
-        }
+        })
     }
 }
 

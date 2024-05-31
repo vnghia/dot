@@ -3,6 +3,8 @@ use std::path::PathBuf;
 use git2::Repository;
 use url::Url;
 
+use crate::ssh::get_default_key;
+
 pub fn pull(
     repo: &Repository,
     remote: Option<&str>,
@@ -64,6 +66,10 @@ pub fn convert_remote(url: &str, host: &str, hostname: &str) -> Option<String> {
             panic!("remote host ({}) does not match hostname ({})", old_host, hostname)
         }
     }
+}
+
+pub fn get_default_profile() -> Option<String> {
+    std::env::var("DOT_GIT_DEFAULT_PROFILE").ok().or_else(get_default_key)
 }
 
 #[cfg(test)]

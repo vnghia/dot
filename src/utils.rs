@@ -1,4 +1,4 @@
-use clap::CommandFactory;
+use clap::{CommandFactory, Error};
 
 use crate::Cli;
 
@@ -8,15 +8,11 @@ pub fn parse_addition(s: &str) -> Result<(String, String), &'static str> {
         .ok_or("--addition must have format k=v")
 }
 
-pub fn unwrap_or_missing_argument<T>(option: Option<T>, key: &str) -> T {
-    if let Some(value) = option {
-        value
-    } else {
-        Cli::command()
-            .error(
-                clap::error::ErrorKind::MissingRequiredArgument,
-                format!("--{} is required if --config is not used", key),
-            )
-            .exit()
-    }
+pub fn unwrap_or_missing_argument<T>(option: Option<T>, key: &str) -> Result<T, Error> {
+    option.ok_or_else(|| {
+        Cli::command().error(
+            clap::error::ErrorKind::MissingRequiredArgument,
+            format!("--{} is required if --config is not used", key),
+        )
+    })
 }
