@@ -33,7 +33,7 @@ built = { version = "0.7.2" }
 
 [profile.release]
 opt-level = 3
-debug = "line-tables-only"
+debug = "none"
 overflow-checks = false
 lto = "fat"
 panic = "abort"
