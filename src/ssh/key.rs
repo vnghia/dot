@@ -3,14 +3,13 @@ use std::io::{BufRead, BufReader, Write};
 use std::path::PathBuf;
 use std::sync::OnceLock;
 
-use clap::CommandFactory;
 use const_format::formatc;
 use convert_case::Casing;
 use serde::Deserialize;
 
 use super::SshKeyArgs;
 use crate::prefix::Prefix;
-use crate::Cli;
+use crate::utils::unwrap_or_missing_argument;
 
 const SSH_INCLUDE_CONDIG_DIR_LINE: &str = formatc!("Include {}/*", Prefix::SSH_CONFIG_DIR_NAME);
 
@@ -146,23 +145,8 @@ impl SshKey {
 
 impl From<SshKeyArgs> for SshKey {
     fn from(value: SshKeyArgs) -> Self {
-        let Some(key) = value.key else {
-            Cli::command()
-                .error(
-                    clap::error::ErrorKind::MissingRequiredArgument,
-                    "--key is required if --config is not used",
-                )
-                .exit()
-        };
-        let Some(hostname) = value.hostname else {
-            Cli::command()
-                .error(
-                    clap::error::ErrorKind::MissingRequiredArgument,
-                    "--hostname is required if --config is not used",
-                )
-                .exit()
-        };
-
+        let key = unwrap_or_missing_argument(value.key, "key");
+        let hostname = unwrap_or_missing_argument(value.hostname, "hostname");
         Self {
             key,
             config: SshConfig {

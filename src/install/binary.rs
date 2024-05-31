@@ -15,6 +15,7 @@ use tempfile::TempDir;
 use zip::ZipArchive;
 
 use super::BinaryArgs;
+use crate::utils::unwrap_or_missing_argument;
 use crate::Cli;
 
 // 1MiB
@@ -173,30 +174,9 @@ where
     's: 'a + 'b + 'c + 'd + 't,
 {
     fn from(value: &'s BinaryArgs) -> Self {
-        let Some(ref name) = value.name else {
-            Cli::command()
-                .error(
-                    clap::error::ErrorKind::MissingRequiredArgument,
-                    "--name is required if --config is not used",
-                )
-                .exit()
-        };
-        let Some(ref url) = value.url else {
-            Cli::command()
-                .error(
-                    clap::error::ErrorKind::MissingRequiredArgument,
-                    "--url is required if --config is not used",
-                )
-                .exit()
-        };
-        let Some(ref version_arg) = value.version_arg else {
-            Cli::command()
-                .error(
-                    clap::error::ErrorKind::MissingRequiredArgument,
-                    "--version-arg is required if --config is not used",
-                )
-                .exit()
-        };
+        let name = unwrap_or_missing_argument(value.name.as_deref(), "name");
+        let url = unwrap_or_missing_argument(value.url.as_deref(), "url");
+        let version_arg = unwrap_or_missing_argument(value.version_arg.as_deref(), "version-arg");
         Self {
             name,
             url,

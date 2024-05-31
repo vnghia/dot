@@ -2,7 +2,6 @@ use std::collections::HashMap;
 use std::io::{BufRead, BufReader};
 use std::sync::OnceLock;
 
-use clap::CommandFactory;
 use git2::Repository;
 use serde::Deserialize;
 
@@ -10,7 +9,7 @@ use super::utils::open_repo;
 use super::{GitProfileArgs, GitProfileKeyArgs};
 use crate::git::utils::convert_remote;
 use crate::prefix::Prefix;
-use crate::Cli;
+use crate::utils::unwrap_or_missing_argument;
 
 const REMOTE_NAME: &str = "origin";
 
@@ -120,30 +119,9 @@ impl GitProfile {
 
 impl From<GitProfileArgs> for GitProfile {
     fn from(value: GitProfileArgs) -> Self {
-        let Some(key) = value.key else {
-            Cli::command()
-                .error(
-                    clap::error::ErrorKind::MissingRequiredArgument,
-                    "--key is required if --config is not used",
-                )
-                .exit()
-        };
-        let Some(name) = value.name else {
-            Cli::command()
-                .error(
-                    clap::error::ErrorKind::MissingRequiredArgument,
-                    "--name is required if --config is not used",
-                )
-                .exit()
-        };
-        let Some(email) = value.email else {
-            Cli::command()
-                .error(
-                    clap::error::ErrorKind::MissingRequiredArgument,
-                    "--email is required if --config is not used",
-                )
-                .exit()
-        };
+        let key = unwrap_or_missing_argument(value.key, "key");
+        let name = unwrap_or_missing_argument(value.name, "name");
+        let email = unwrap_or_missing_argument(value.email, "email");
         Self {
             key,
             config: GitConfig { name, email, additions: value.additions.into_iter().collect() },
