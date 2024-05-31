@@ -1,23 +1,47 @@
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader, Write};
 use std::path::PathBuf;
+use std::sync::OnceLock;
 
+use clap::CommandFactory;
 use const_format::formatc;
 use convert_case::Casing;
+use serde::Deserialize;
 
-use super::SshArgs;
+use super::SshKeyArgs;
 use crate::prefix::Prefix;
+use crate::Cli;
 
 const SSH_INCLUDE_CONDIG_DIR_LINE: &str = formatc!("Include {}/*", Prefix::SSH_CONFIG_DIR_NAME);
 
+#[derive(Deserialize, Debug)]
+#[cfg_attr(test, derive(PartialEq, Eq))]
 pub struct SshConfig {
-    key: String,
     hostname: String,
     comment: Option<String>,
+    #[serde(flatten)]
     additions: HashMap<String, String>,
 }
 
-impl SshConfig {
+#[derive(Debug)]
+#[cfg_attr(test, derive(PartialEq, Eq))]
+pub struct SshKey {
+    key: String,
+    config: SshConfig,
+}
+
+impl SshKey {
+    pub fn load_predefined_key(prefix: &Prefix) -> &'static HashMap<String, Self> {
+        static PREDEFINED_CONFIG: OnceLock<HashMap<String, SshKey>> = OnceLock::new();
+        PREDEFINED_CONFIG.get_or_init(|| {
+            let configs: HashMap<String, SshConfig> = toml::from_str(
+                &std::fs::read_to_string(prefix.config_ssh().join("key.toml")).unwrap(),
+            )
+            .unwrap();
+            configs.into_iter().map(|(key, config)| (key.clone(), SshKey { key, config })).collect()
+        })
+    }
+
     fn include_ssh_config_dir(prefix: &Prefix) {
         let ssh_dir = prefix.ssh();
         let ssh_config_path = ssh_dir.join("config");
@@ -48,6 +72,7 @@ impl SshConfig {
     }
 
     fn generate_key(&self, prefix: &Prefix) {
+        let config = &self.config;
         let skm_bin = prefix.bin().join("skm");
         let mut command = std::process::Command::new(skm_bin);
         command
@@ -56,7 +81,7 @@ impl SshConfig {
             .arg("create")
             .arg(&self.key)
             .arg("-C")
-            .arg(self.comment.as_deref().unwrap_or_else(|| &self.hostname))
+            .arg(config.comment.as_deref().unwrap_or_else(|| &config.hostname))
             .arg("-t")
             .arg("ed25519");
         log::info!(command:? = command; "Generating new ssh key");
@@ -78,18 +103,19 @@ impl SshConfig {
     }
 
     fn generate_ssh_config(&self, prefix: &Prefix) {
+        let config = &self.config;
         let ssh_config_path = prefix.ssh_config().join(&self.key);
         let key_path = self.check_key(prefix);
 
         let mut ssh_content = "# AUTO GENERATED FILE. DO NOT EDIT\n\n".to_string();
         ssh_content += &format!("Host {}\n", &self.key);
-        ssh_content += &format!("\tHostname {}\n", &self.hostname);
+        ssh_content += &format!("\tHostname {}\n", &config.hostname);
         ssh_content += "\tAddKeysToAgent yes\n";
         ssh_content += "\tIdentitiesOnly yes\n";
         ssh_content +=
             &format!("\tIdentityFile {}\n", key_path.into_os_string().into_string().unwrap());
 
-        for (k, v) in self.additions.iter() {
+        for (k, v) in config.additions.iter() {
             ssh_content += &format!("\t{} {}\n", k.to_case(convert_case::Case::Pascal), v);
         }
 
@@ -118,13 +144,32 @@ impl SshConfig {
     }
 }
 
-impl From<SshArgs> for SshConfig {
-    fn from(value: SshArgs) -> Self {
+impl From<SshKeyArgs> for SshKey {
+    fn from(value: SshKeyArgs) -> Self {
+        let Some(key) = value.key else {
+            Cli::command()
+                .error(
+                    clap::error::ErrorKind::MissingRequiredArgument,
+                    "--key is required if --config is not used",
+                )
+                .exit()
+        };
+        let Some(hostname) = value.hostname else {
+            Cli::command()
+                .error(
+                    clap::error::ErrorKind::MissingRequiredArgument,
+                    "--hostname is required if --config is not used",
+                )
+                .exit()
+        };
+
         Self {
-            key: value.key,
-            hostname: value.hostname,
-            comment: value.comment,
-            additions: value.addition.into_iter().collect::<HashMap<_, _>>(),
+            key,
+            config: SshConfig {
+                hostname,
+                comment: value.comment,
+                additions: value.addition.into_iter().collect(),
+            },
         }
     }
 }
@@ -133,7 +178,7 @@ impl From<SshArgs> for SshConfig {
 mod test {
     use super::*;
 
-    impl SshConfig {
+    impl SshKey {
         pub fn fake(prefix: &Prefix, key: String, hostname: String) -> Self {
             let key_dir = prefix.skm().join(&key);
             std::fs::create_dir_all(&key_dir).unwrap();
@@ -154,14 +199,16 @@ mod test {
                 .write_all(b"private")
                 .unwrap();
 
-            let ssh_config = SshConfig {
+            let ssh_key = SshKey {
                 key,
-                hostname,
-                comment: None,
-                additions: [("snake_case".to_owned(), "yes".to_owned())].into_iter().collect(),
+                config: SshConfig {
+                    hostname,
+                    comment: None,
+                    additions: [("snake_case".to_owned(), "yes".to_owned())].into_iter().collect(),
+                },
             };
-            ssh_config.generate_ssh_config(prefix);
-            ssh_config
+            ssh_key.generate_ssh_config(prefix);
+            ssh_key
         }
     }
 }
@@ -178,7 +225,7 @@ mod tests {
         let prefix: Prefix = (&temp_dir).into();
         prefix.create_dir_all();
         let config_path = prefix.ssh().join("config");
-        SshConfig::include_ssh_config_dir(&prefix);
+        SshKey::include_ssh_config_dir(&prefix);
         assert_eq!(
             std::fs::read_to_string(config_path).unwrap(),
             formatc!("{}\n", SSH_INCLUDE_CONDIG_DIR_LINE)
@@ -192,7 +239,7 @@ mod tests {
         prefix.create_dir_all();
         let config_path = prefix.ssh().join("config");
         std::fs::write(&config_path, "test content\ntest config\n").unwrap();
-        SshConfig::include_ssh_config_dir(&prefix);
+        SshKey::include_ssh_config_dir(&prefix);
         assert_eq!(
             std::fs::read_to_string(&config_path).unwrap(),
             formatc!("test content\ntest config\n{}\n", SSH_INCLUDE_CONDIG_DIR_LINE)
@@ -210,7 +257,7 @@ mod tests {
             formatc!("test content\ntest config\n{}\n", SSH_INCLUDE_CONDIG_DIR_LINE),
         )
         .unwrap();
-        SshConfig::include_ssh_config_dir(&prefix);
+        SshKey::include_ssh_config_dir(&prefix);
         assert_eq!(
             std::fs::read_to_string(&config_path).unwrap(),
             formatc!("test content\ntest config\n{}\n", SSH_INCLUDE_CONDIG_DIR_LINE)
@@ -224,7 +271,7 @@ mod tests {
         prefix.create_dir_all();
         let config_path = prefix.ssh_config().join("key");
 
-        SshConfig::fake(&prefix, "key".into(), "host".into());
+        SshKey::fake(&prefix, "key".into(), "host".into());
         let mut ssh_content = "# AUTO GENERATED FILE. DO NOT EDIT\n\nHost key\n\tHostname \
                                host\n\tAddKeysToAgent yes\n\tIdentitiesOnly yes\n\tIdentityFile "
             .to_string()
@@ -237,5 +284,48 @@ mod tests {
         }
 
         assert_eq!(std::fs::read_to_string(config_path).unwrap(), ssh_content);
+    }
+
+    #[test]
+    fn test_parse_predefined_config() {
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        std::fs::create_dir_all(prefix.config_ssh()).unwrap();
+        std::fs::write(
+            prefix.config_ssh().join("key.toml"),
+            r#"
+[text]
+hostname = "a"
+
+[number]
+hostname = "1"
+comment = "2"
+key = "value"
+"#,
+        )
+        .unwrap();
+        let profiles = SshKey::load_predefined_key(&prefix);
+        assert_eq!(
+            profiles.get("text").unwrap(),
+            &SshKey {
+                key: "text".into(),
+                config: SshConfig {
+                    hostname: "a".into(),
+                    comment: None,
+                    additions: Default::default()
+                }
+            }
+        );
+        assert_eq!(
+            profiles.get("number").unwrap(),
+            &SshKey {
+                key: "number".into(),
+                config: SshConfig {
+                    hostname: "1".into(),
+                    comment: Some("2".into()),
+                    additions: [("key".into(), "value".into())].into_iter().collect()
+                }
+            }
+        );
     }
 }

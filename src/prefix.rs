@@ -76,6 +76,10 @@ impl Prefix {
     pub fn config_git(&self) -> PathBuf {
         self.config().join("git")
     }
+
+    pub fn config_ssh(&self) -> PathBuf {
+        self.config().join("ssh")
+    }
 }
 
 #[cfg(test)]

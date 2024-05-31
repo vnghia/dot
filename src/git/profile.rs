@@ -165,14 +165,14 @@ mod tests {
 
     use super::*;
     use crate::prefix::Prefix;
-    use crate::ssh::SshConfig;
+    use crate::ssh::SshKey;
 
     #[test]
     fn test_extract_ssh_config() {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();
         prefix.create_dir_all();
-        SshConfig::fake(&prefix, "key".into(), "hostname".into());
+        SshKey::fake(&prefix, "key".into(), "hostname".into());
         assert_eq!(
             GitProfile {
                 key: "key".into(),
