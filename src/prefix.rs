@@ -68,6 +68,14 @@ impl Prefix {
     pub fn skm(&self) -> PathBuf {
         self.local().join("skm")
     }
+
+    pub fn config(&self) -> PathBuf {
+        self.dot().join("config")
+    }
+
+    pub fn config_git(&self) -> PathBuf {
+        self.config().join("git")
+    }
 }
 
 #[cfg(test)]

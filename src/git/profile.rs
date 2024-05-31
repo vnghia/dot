@@ -1,8 +1,10 @@
 use std::collections::HashMap;
 use std::io::{BufRead, BufReader};
+use std::sync::OnceLock;
 
 use clap::CommandFactory;
 use git2::Repository;
+use serde::Deserialize;
 
 use super::utils::open_repo;
 use super::{GitProfileArgs, GitProfileKeyArgs};
@@ -12,12 +14,17 @@ use crate::Cli;
 
 const REMOTE_NAME: &str = "origin";
 
+#[derive(Deserialize, Debug)]
+#[cfg_attr(test, derive(PartialEq, Eq))]
 pub struct GitConfig {
     name: String,
     email: String,
+    #[serde(flatten)]
     additions: HashMap<String, String>,
 }
 
+#[derive(Debug)]
+#[cfg_attr(test, derive(PartialEq, Eq))]
 pub struct GitProfile {
     key: String,
     config: GitConfig,
@@ -37,6 +44,20 @@ impl GitConfig {
 }
 
 impl GitProfile {
+    pub fn load_predefined_profile(prefix: &Prefix) -> &'static HashMap<String, Self> {
+        static PREDEFINED_CONFIG: OnceLock<HashMap<String, GitProfile>> = OnceLock::new();
+        PREDEFINED_CONFIG.get_or_init(|| {
+            let configs: HashMap<String, GitConfig> = toml::from_str(
+                &std::fs::read_to_string(prefix.config_git().join("profile.toml")).unwrap(),
+            )
+            .unwrap();
+            configs
+                .into_iter()
+                .map(|(key, config)| (key.clone(), GitProfile { key, config }))
+                .collect()
+        })
+    }
+
     fn extract_ssh_hostname(&self, prefix: &Prefix) -> String {
         let config_path = prefix.ssh_config().join(&self.key);
         log::debug!(path:? = config_path; "Extracting from config");
@@ -132,6 +153,7 @@ impl From<GitProfileArgs> for GitProfile {
 
 pub fn entry_git_profile(prefix: &Prefix, args: GitProfileKeyArgs) {
     if let Some(config) = args.config {
+        GitProfile::load_predefined_profile(prefix).get(&config).unwrap().set(prefix)
     } else {
         GitProfile::from(args.profile).set(prefix)
     }
@@ -163,5 +185,49 @@ mod tests {
             .extract_ssh_hostname(&prefix),
             "hostname"
         )
+    }
+
+    #[test]
+    fn test_parse_predefined_config() {
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        std::fs::create_dir_all(prefix.config_git()).unwrap();
+        std::fs::write(
+            prefix.config_git().join("profile.toml"),
+            r#"
+[text]
+name = "a"
+email = "b"
+
+[number]
+name = "1"
+email = "2"
+key = "value"
+"#,
+        )
+        .unwrap();
+        let profiles = GitProfile::load_predefined_profile(&prefix);
+        assert_eq!(
+            profiles.get("text").unwrap(),
+            &GitProfile {
+                key: "text".into(),
+                config: GitConfig {
+                    name: "a".into(),
+                    email: "b".into(),
+                    additions: Default::default()
+                }
+            }
+        );
+        assert_eq!(
+            profiles.get("number").unwrap(),
+            &GitProfile {
+                key: "number".into(),
+                config: GitConfig {
+                    name: "1".into(),
+                    email: "2".into(),
+                    additions: [("key".into(), "value".into())].into_iter().collect()
+                }
+            }
+        );
     }
 }
