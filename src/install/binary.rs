@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use std::fmt::Debug;
 use std::fs::Permissions;
-use std::io::{Cursor, Read, Write};
+use std::io::{Cursor, Read};
 use std::marker::PhantomData;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
@@ -11,7 +11,7 @@ use const_format::formatc;
 use flate2::bufread::GzDecoder;
 use indicatif::{ProgressBar, ProgressStyle};
 use tar::Archive;
-use tempfile::TempDir;
+use tempfile::{NamedTempFile, TempDir};
 use zip::ZipArchive;
 
 use super::BinaryArgs;
@@ -92,8 +92,7 @@ where
         };
         log::info!(name = self.name, url = url.as_ref(); "Downloading binary");
 
-        let pb = ProgressBar::new_spinner();
-        pb.set_style(
+        let pb = ProgressBar::new_spinner().with_style(
             ProgressStyle::with_template(
                 "{spinner:.green} [{elapsed_precise}] {bytes} {bytes_per_sec}",
             )
@@ -134,7 +133,7 @@ where
                 } else {
                     archive_path = archive_path.join(self.name);
                 }
-                std::fs::copy(archive_path, &bin_path).unwrap();
+                std::fs::rename(archive_path, &bin_path).unwrap();
                 None
             }
         } else {
@@ -142,14 +141,9 @@ where
         };
 
         if let Some(buf) = buf {
-            std::fs::OpenOptions::new()
-                .write(true)
-                .create(true)
-                .truncate(true)
-                .open(&bin_path)
-                .unwrap()
-                .write_all(&buf)
-                .unwrap();
+            let temp_path = NamedTempFile::new().unwrap();
+            std::fs::write(&temp_path, buf).unwrap();
+            std::fs::rename(&temp_path, &bin_path).unwrap();
         }
         std::fs::set_permissions(&bin_path, Permissions::from_mode(0o777)).unwrap();
 

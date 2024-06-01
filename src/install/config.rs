@@ -15,6 +15,7 @@ pub enum InstallConfig {
     Croc,
     Just,
     Skm,
+    Dot,
 }
 
 pub const STARSHIP_BINARY: Binary<[&str; 1]> = Binary {
@@ -111,6 +112,19 @@ pub const SKM_BINARY: Binary<[&str; 1]> = Binary {
     phantom_t: std::marker::PhantomData,
 };
 
+pub const DOT_BINARY: Binary<[&str; 0]> = Binary {
+    name: "dot",
+    url: formatc!(
+        "https://github.com/vnghia/dotfile-rs/releases/latest/download/dot.{}-{}",
+        os::UNAME,
+        arch::FULL,
+    ),
+    archive: None,
+    version_arg: "--version",
+    phantom_c: std::marker::PhantomData,
+    phantom_t: std::marker::PhantomData,
+};
+
 impl InstallConfig {
     pub fn download<PB: AsRef<Path>>(self, bin_dir: PB, bin_version: Option<&str>) {
         match self {
@@ -121,6 +135,7 @@ impl InstallConfig {
             InstallConfig::Croc => CROC_BINARY.download(bin_dir, bin_version),
             InstallConfig::Just => JUST_BINARY.download(bin_dir, bin_version),
             InstallConfig::Skm => SKM_BINARY.download(bin_dir, bin_version),
+            InstallConfig::Dot => DOT_BINARY.download(bin_dir, bin_version),
         }
     }
 }
@@ -172,5 +187,11 @@ mod tests {
     fn test_install_skm() {
         let bin_dir = TempDir::new().unwrap();
         InstallConfig::Skm.download(bin_dir, Some("0.8.6"));
+    }
+
+    #[test]
+    fn test_install_dot() {
+        let bin_dir = TempDir::new().unwrap();
+        InstallConfig::Dot.download(bin_dir, None);
     }
 }
