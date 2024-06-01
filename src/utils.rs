@@ -8,11 +8,15 @@ pub fn parse_addition(s: &str) -> Result<(String, String), &'static str> {
         .ok_or("--addition must have format k=v")
 }
 
-pub fn unwrap_or_missing_argument<T>(option: Option<T>, key: &str) -> Result<T, Error> {
+pub fn unwrap_or_missing_argument<T>(
+    option: Option<T>,
+    key: &str,
+    cause: Option<&str>,
+) -> Result<T, Error> {
     option.ok_or_else(|| {
         Cli::command().error(
             clap::error::ErrorKind::MissingRequiredArgument,
-            format!("--{} is required if --config is not used", key),
+            format!("--{} is required if {}", key, cause.unwrap_or("--config is not used")),
         )
     })
 }

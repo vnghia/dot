@@ -147,8 +147,8 @@ impl TryFrom<SshKeyArgs> for SshKey {
     type Error = clap::Error;
 
     fn try_from(value: SshKeyArgs) -> Result<Self, Self::Error> {
-        let key = unwrap_or_missing_argument(value.key, "key")?;
-        let hostname = unwrap_or_missing_argument(value.hostname, "hostname")?;
+        let key = unwrap_or_missing_argument(value.key, "key", None)?;
+        let hostname = unwrap_or_missing_argument(value.hostname, "hostname", None)?;
         Ok(Self {
             key,
             config: SshConfig {

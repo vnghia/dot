@@ -121,9 +121,9 @@ impl TryFrom<GitProfileArgs> for GitProfile {
     type Error = clap::Error;
 
     fn try_from(value: GitProfileArgs) -> Result<Self, Self::Error> {
-        let key = unwrap_or_missing_argument(value.key, "key")?;
-        let name = unwrap_or_missing_argument(value.name, "name")?;
-        let email = unwrap_or_missing_argument(value.email, "email")?;
+        let key = unwrap_or_missing_argument(value.key, "key", None)?;
+        let name = unwrap_or_missing_argument(value.name, "name", None)?;
+        let email = unwrap_or_missing_argument(value.email, "email", None)?;
         Ok(Self {
             key,
             config: GitConfig { name, email, additions: value.additions.into_iter().collect() },

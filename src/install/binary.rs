@@ -6,7 +6,7 @@ use std::marker::PhantomData;
 use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
-use clap::{CommandFactory, ValueEnum};
+use clap::ValueEnum;
 use const_format::formatc;
 use flate2::bufread::GzDecoder;
 use indicatif::{ProgressBar, ProgressStyle};
@@ -16,7 +16,6 @@ use zip::ZipArchive;
 
 use super::BinaryArgs;
 use crate::utils::unwrap_or_missing_argument;
-use crate::Cli;
 
 // 1MiB
 const CHUNK_SIZE: usize = 1024 * 1024;
@@ -79,16 +78,13 @@ where
     pub fn download<PB: AsRef<Path>>(&'s self, bin_dir: PB, bin_version: Option<&str>) {
         let bin_path = bin_dir.as_ref().join(self.name);
         let url: Cow<'_, str> = if self.url.contains(VERSION_PATTERN) {
-            let Some(bin_version) = bin_version else {
-                Cli::command()
-                    .error(
-                        clap::error::ErrorKind::MissingRequiredArgument,
-                        formatc!(
-                            "--bin-version is required because {} is in string url",
-                            VERSION_PATTERN
-                        ),
-                    )
-                    .exit()
+            let bin_version = match unwrap_or_missing_argument(
+                bin_version,
+                "bin-version",
+                Some(formatc!("there is a {} in string url", VERSION_PATTERN)),
+            ) {
+                Ok(ok) => ok,
+                Err(e) => e.exit(),
             };
             self.url.replace(VERSION_PATTERN, bin_version).into()
         } else {
@@ -176,9 +172,10 @@ where
     type Error = clap::Error;
 
     fn try_from(value: &'s BinaryArgs) -> Result<Self, Self::Error> {
-        let name = unwrap_or_missing_argument(value.name.as_deref(), "name")?;
-        let url = unwrap_or_missing_argument(value.url.as_deref(), "url")?;
-        let version_arg = unwrap_or_missing_argument(value.version_arg.as_deref(), "version-arg")?;
+        let name = unwrap_or_missing_argument(value.name.as_deref(), "name", None)?;
+        let url = unwrap_or_missing_argument(value.url.as_deref(), "url", None)?;
+        let version_arg =
+            unwrap_or_missing_argument(value.version_arg.as_deref(), "version-arg", None)?;
         Ok(Self {
             name,
             url,
