@@ -440,6 +440,7 @@ dependencies = [
  "indicatif",
  "itertools",
  "log",
+ "rand",
  "serde",
  "tar",
  "tempfile",

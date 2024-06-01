@@ -20,6 +20,7 @@ homedir = { version = "0.2.1" }
 indicatif = { version = "0.17.8" }
 itertools = { version = "0.13.0" }
 log = { version = "0.4.21", features = ["kv"] }
+rand = { version = "0.8.5" }
 serde = { version = "1.0.203", features = ["derive"] }
 tar = { version = "0.4.40" }
 tempfile = { version = "3.10.1", features = ["nightly"] }

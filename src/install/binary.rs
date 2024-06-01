@@ -10,8 +10,9 @@ use clap::ValueEnum;
 use const_format::formatc;
 use flate2::bufread::GzDecoder;
 use indicatif::{ProgressBar, ProgressStyle};
+use rand::distributions::{Alphanumeric, DistString};
 use tar::Archive;
-use tempfile::{NamedTempFile, TempDir};
+use tempfile::TempDir;
 use zip::ZipArchive;
 
 use super::BinaryArgs;
@@ -76,7 +77,8 @@ where
     's: 't,
 {
     pub fn download<PB: AsRef<Path>>(&'s self, bin_dir: PB, bin_version: Option<&str>) {
-        let bin_path = bin_dir.as_ref().join(self.name);
+        let bin_dir = bin_dir.as_ref();
+        let bin_path = bin_dir.join(self.name);
         let url: Cow<'_, str> = if self.url.contains(VERSION_PATTERN) {
             let bin_version = match unwrap_or_missing_argument(
                 bin_version,
@@ -133,7 +135,10 @@ where
                 } else {
                     archive_path = archive_path.join(self.name);
                 }
-                std::fs::rename(archive_path, &bin_path).unwrap();
+                let bin_tmp_path =
+                    bin_dir.join(Alphanumeric.sample_string(&mut rand::thread_rng(), 16));
+                std::fs::copy(archive_path, &bin_tmp_path).unwrap();
+                std::fs::rename(&bin_tmp_path, &bin_path).unwrap();
                 None
             }
         } else {
@@ -141,9 +146,10 @@ where
         };
 
         if let Some(buf) = buf {
-            let temp_path = NamedTempFile::new().unwrap();
-            std::fs::write(&temp_path, buf).unwrap();
-            std::fs::rename(&temp_path, &bin_path).unwrap();
+            let bin_tmp_path =
+                bin_dir.join(Alphanumeric.sample_string(&mut rand::thread_rng(), 16));
+            std::fs::write(&bin_tmp_path, buf).unwrap();
+            std::fs::rename(&bin_tmp_path, &bin_path).unwrap();
         }
         std::fs::set_permissions(&bin_path, Permissions::from_mode(0o777)).unwrap();
 
