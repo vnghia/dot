@@ -5,7 +5,7 @@ use std::path::Path;
 use clap::{Args, CommandFactory, ValueEnum};
 use git2::Repository;
 
-use crate::git::pull;
+use crate::git::{clone, pull};
 use crate::prefix::Prefix;
 use crate::Cli;
 
@@ -64,10 +64,10 @@ pub fn entry_init(prefix: &Prefix, args: InitArgs) {
         copy_dir_all(repo, &dot_dir).unwrap();
     } else if dot_dir.exists() {
         log::info!(repo:? = args.repo, dest:? = dot_dir; "Opening existing dot repository");
-        pull(&Repository::open(&dot_dir).unwrap(), None, None).unwrap();
+        pull(&Repository::open(&dot_dir).unwrap(), None, None, true).unwrap();
     } else {
         log::info!(repo:? = args.repo, dest:? = dot_dir; "Cloning dot repository");
-        Repository::clone_recurse(&args.repo, &dot_dir).unwrap();
+        clone(&args.repo, &dot_dir, true);
     }
 
     match args.shell {

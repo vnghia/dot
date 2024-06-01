@@ -6,7 +6,7 @@ mod utils;
 use std::path::PathBuf;
 
 use clap::{Args, Subcommand};
-pub use utils::pull;
+pub use utils::{clone, pull};
 
 use self::clone::entry_git_clone;
 use self::profile::entry_git_profile;
@@ -67,6 +67,9 @@ pub struct GitCloneArgs {
     /// working directory.
     #[arg(short, long)]
     destination: Option<PathBuf>,
+    /// Only clone the main repo and ignore submodules.
+    #[arg(long)]
+    no_recursive: bool,
 }
 
 pub fn entry_git(prefix: &Prefix, args: GitArgs) {

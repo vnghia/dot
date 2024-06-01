@@ -37,7 +37,9 @@ pub fn entry_git_clone(prefix: &Prefix, args: GitCloneArgs) {
             .unwrap()
             .join(repo_url.trim_end_matches(".git").split('/').last().unwrap())
     });
-    clone(&repo_url, destination);
+
+    log::info!(url:? = repo_url, into:? = destination; "Cloning");
+    clone(&repo_url, destination, !args.no_recursive);
 }
 
 #[cfg(test)]
@@ -56,6 +58,7 @@ mod tests {
                 repo: "https://github.com/vnghia/dotfile-rs.git".to_owned(),
                 config: None,
                 destination: Some(temp_dir.path().join("clone")),
+                no_recursive: false,
             },
         );
     }
@@ -71,6 +74,7 @@ mod tests {
                 repo: "https://github.com/vnghia/dotfile-rs.git".to_owned(),
                 config: None,
                 destination: None,
+                no_recursive: false,
             },
         );
         assert!(temp_dir.path().join("dotfile-rs").exists())
