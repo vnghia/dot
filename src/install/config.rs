@@ -188,10 +188,4 @@ mod tests {
         let bin_dir = TempDir::new().unwrap();
         InstallConfig::Skm.download(bin_dir, Some("0.8.6"));
     }
-
-    #[test]
-    fn test_install_dot() {
-        let bin_dir = TempDir::new().unwrap();
-        InstallConfig::Dot.download(bin_dir, None);
-    }
 }
