@@ -58,5 +58,5 @@ rbr = rbi --root
 rbh = "!git rbi HEAD~$1 #"
 
 # Dot
-pr = "dot git profile"
-cl = "dot git clone"
+pr = "!dot git profile"
+cl = "!dot git clone"
