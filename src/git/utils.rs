@@ -1,9 +1,19 @@
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
-use git2::Repository;
+use git2::build::RepoBuilder;
+use git2::{FetchOptions, Repository};
 use url::Url;
 
+use crate::git::progress::GitProgress;
 use crate::ssh::get_default_key;
+
+pub fn clone(url: &str, path: impl AsRef<Path>) -> Repository {
+    let path = path.as_ref();
+    let mut fo = FetchOptions::new();
+    fo.remote_callbacks(GitProgress::remote_callbacks());
+    log::info!(url:? = url, into:? = path; "Cloning");
+    RepoBuilder::new().fetch_options(fo).clone(url, path).unwrap()
+}
 
 pub fn pull(
     repo: &Repository,
@@ -76,6 +86,8 @@ pub fn get_default_profile() -> Option<String> {
 
 #[cfg(test)]
 mod tests {
+    use tempfile::TempDir;
+
     use super::*;
 
     #[test]
@@ -118,5 +130,11 @@ mod tests {
     #[test]
     fn test_convert_remote_ssh_same_host_no_user() {
         assert!(convert_remote("host:username/repo.git", "host", "git.test").is_none())
+    }
+
+    #[test]
+    fn test_clone() {
+        let temp_dir = TempDir::new().unwrap();
+        clone("https://github.com/vnghia/dotfile-rs.git", temp_dir.path().join("clone"));
     }
 }
