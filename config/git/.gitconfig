@@ -56,3 +56,7 @@ rbtd = rb --edit-todo
 rbc = -c core.editor=true rb --continue
 rbr = rbi --root
 rbh = "!git rbi HEAD~$1 #"
+
+# Dot
+pr = "dot git profile"
+cl = "dot git clone"
