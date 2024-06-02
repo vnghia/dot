@@ -1,4 +1,3 @@
-use std::borrow::Cow;
 use std::fmt::Debug;
 use std::fs::Permissions;
 use std::io::{Cursor, Read};
@@ -7,7 +6,6 @@ use std::os::unix::fs::PermissionsExt;
 use std::path::Path;
 
 use clap::ValueEnum;
-use const_format::formatc;
 use flate2::bufread::GzDecoder;
 use indicatif::{ProgressBar, ProgressStyle};
 use rand::distributions::{Alphanumeric, DistString};
@@ -16,6 +14,7 @@ use tempfile::TempDir;
 use zip::ZipArchive;
 
 use super::BinaryArgs;
+use crate::prefix::Prefix;
 use crate::utils::unwrap_or_missing_argument;
 
 // 1MiB
@@ -76,23 +75,11 @@ where
     'c: 't,
     's: 't,
 {
-    pub fn download<PB: AsRef<Path>>(&'s self, bin_dir: PB, bin_version: Option<&str>) {
-        let bin_dir = bin_dir.as_ref();
+    pub fn download(&'s self, prefix: &Prefix, bin_version: &str) {
+        let bin_dir = prefix.bin();
         let bin_path = bin_dir.join(self.name);
-        let url: Cow<'_, str> = if self.url.contains(VERSION_PATTERN) {
-            let bin_version = match unwrap_or_missing_argument(
-                bin_version,
-                "bin-version",
-                Some(formatc!("there is a {} in string url", VERSION_PATTERN)),
-            ) {
-                Ok(ok) => ok,
-                Err(e) => e.exit(),
-            };
-            self.url.replace(VERSION_PATTERN, bin_version).into()
-        } else {
-            self.url.into()
-        };
-        log::info!(name = self.name, url = url.as_ref(); "Downloading binary");
+        let url = self.url.replace(VERSION_PATTERN, bin_version);
+        log::info!(name = self.name, url:% = url; "Downloading binary");
 
         let pb = ProgressBar::new_spinner().with_style(
             ProgressStyle::with_template(

@@ -20,3 +20,10 @@ pub fn unwrap_or_missing_argument<T>(
         )
     })
 }
+
+#[cfg(test)]
+pub fn get_build_prefix() -> crate::prefix::Prefix {
+    crate::prefix::Prefix::new(Some(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().to_path_buf(),
+    ))
+}

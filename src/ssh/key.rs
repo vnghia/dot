@@ -276,7 +276,7 @@ mod tests {
     fn test_parse_predefined_config() {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();
-        std::fs::create_dir_all(prefix.config_ssh()).unwrap();
+        prefix.create_dir_all();
         std::fs::write(
             prefix.config_ssh().join("key.toml"),
             r#"

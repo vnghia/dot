@@ -6,6 +6,7 @@ use clap::Args;
 use self::binary::{ArchiveType, Binary};
 use self::config::InstallConfig;
 use crate::prefix::Prefix;
+use crate::utils::unwrap_or_missing_argument;
 
 #[derive(Debug, Args)]
 pub struct InstallArgs {
@@ -40,14 +41,18 @@ pub struct BinaryArgs {
 }
 
 pub fn entry_install(prefix: &Prefix, args: InstallArgs) {
-    let bin_dir = prefix.bin();
     if !args.configs.is_empty() {
         for config in args.configs {
-            config.download(&bin_dir, args.bin_version.as_deref());
+            config.download(prefix, args.bin_version.as_deref());
         }
     } else {
+        let bin_version = match unwrap_or_missing_argument(args.bin_version, "--bin-version", None)
+        {
+            Ok(bin_version) => bin_version,
+            Err(e) => e.exit(),
+        };
         match Binary::try_from(&args.binary) {
-            Ok(binary) => binary.download(bin_dir, args.bin_version.as_deref()),
+            Ok(binary) => binary.download(prefix, &bin_version),
             Err(e) => e.exit(),
         }
     }

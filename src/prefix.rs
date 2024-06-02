@@ -35,6 +35,14 @@ impl Prefix {
         std::fs::create_dir_all(self.local()).unwrap();
         std::fs::create_dir_all(self.bin()).unwrap();
         std::fs::create_dir_all(self.skm()).unwrap();
+
+        if cfg!(test) {
+            std::fs::create_dir_all(self.bin()).unwrap();
+
+            std::fs::create_dir_all(self.config_git()).unwrap();
+            std::fs::create_dir_all(self.config_ssh()).unwrap();
+            std::fs::create_dir_all(self.config_binary()).unwrap();
+        }
     }
 
     pub fn prefix(&self) -> &Path {
@@ -79,6 +87,10 @@ impl Prefix {
 
     pub fn config_ssh(&self) -> PathBuf {
         self.config().join("ssh")
+    }
+
+    pub fn config_binary(&self) -> PathBuf {
+        self.config().join("binary")
     }
 }
 

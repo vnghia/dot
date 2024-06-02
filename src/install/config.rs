@@ -1,28 +1,35 @@
-use std::path::Path;
+include!(concat!(env!("OUT_DIR"), "/install-config.rs"));
 
-use clap::ValueEnum;
+use std::collections::HashMap;
+use std::sync::OnceLock;
+
 use const_format::{formatc, map_ascii_case, str_replace, Case};
 
 use super::binary::{ArchiveType, Binary, VERSION_PATTERN};
 use crate::constant::target::*;
+use crate::prefix::Prefix;
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
-pub enum InstallConfig {
-    Starship,
-    Direnv,
-    Rye,
-    Eza,
-    Croc,
-    Just,
-    Skm,
-    Dot,
-    Zoxide,
+impl InstallConfig {
+    pub fn load_predefined_version(prefix: &Prefix) -> &'static HashMap<Self, String> {
+        static PREDEFINED_CONFIG: OnceLock<HashMap<InstallConfig, String>> = OnceLock::new();
+        PREDEFINED_CONFIG.get_or_init(|| {
+            let configs: HashMap<String, String> = toml::from_str(
+                &std::fs::read_to_string(prefix.config_binary().join("version.toml")).unwrap(),
+            )
+            .unwrap();
+            configs
+                .into_iter()
+                .map(|(k, v)| (InstallConfig::from_str(&k, true).unwrap(), v))
+                .collect()
+        })
+    }
 }
 
 pub const STARSHIP_BINARY: Binary<[&str; 1]> = Binary {
     name: "starship",
     url: formatc!(
-        "https://github.com/starship/starship/releases/latest/download/starship-{}.tar.gz",
+        "https://github.com/starship/starship/releases/download/v{}/starship-{}.tar.gz",
+        VERSION_PATTERN,
         TARGET_TRIPLET
     ),
     archive: Some((ArchiveType::TarGz, Some(["starship"]))),
@@ -34,7 +41,8 @@ pub const STARSHIP_BINARY: Binary<[&str; 1]> = Binary {
 pub const DIRENV_BINARY: Binary<[&str; 0]> = Binary {
     name: "direnv",
     url: formatc!(
-        "https://github.com/direnv/direnv/releases/latest/download/direnv.{}-{}",
+        "https://github.com/direnv/direnv/releases/download/v{}/direnv.{}-{}",
+        VERSION_PATTERN,
         os::UNAME,
         arch::SHORT,
     ),
@@ -47,7 +55,8 @@ pub const DIRENV_BINARY: Binary<[&str; 0]> = Binary {
 pub const RYE_BINARY: Binary<[&str; 1]> = Binary {
     name: "rye",
     url: formatc!(
-        "https://github.com/astral-sh/rye/releases/latest/download/rye-{}-{}.gz",
+        "https://github.com/astral-sh/rye/releases/download/{}/rye-{}-{}.gz",
+        VERSION_PATTERN,
         arch::FULL,
         os::FULL,
     ),
@@ -60,7 +69,8 @@ pub const RYE_BINARY: Binary<[&str; 1]> = Binary {
 pub const EZA_BINARY: Binary<[&str; 1]> = Binary {
     name: "eza",
     url: formatc!(
-        "https://github.com/eza-community/eza/releases/latest/download/eza_{}.tar.gz",
+        "https://github.com/eza-community/eza/releases/download/v{}/eza_{}.tar.gz",
+        VERSION_PATTERN,
         TARGET_TRIPLET,
     ),
     archive: Some((ArchiveType::TarGz, Some(["eza"]))),
@@ -116,7 +126,8 @@ pub const SKM_BINARY: Binary<[&str; 1]> = Binary {
 pub const DOT_BINARY: Binary<[&str; 0]> = Binary {
     name: "dot",
     url: formatc!(
-        "https://github.com/vnghia/dotfile-rs/releases/latest/download/dot.{}-{}",
+        "https://github.com/vnghia/dotfile-rs/releases/download/v{}/dot.{}-{}",
+        VERSION_PATTERN,
         os::UNAME,
         arch::FULL,
     ),
@@ -141,17 +152,19 @@ pub const ZOXIDE_BINARY: Binary<[&str; 1]> = Binary {
 };
 
 impl InstallConfig {
-    pub fn download<PB: AsRef<Path>>(self, bin_dir: PB, bin_version: Option<&str>) {
+    pub fn download(self, prefix: &Prefix, bin_version: Option<&str>) {
+        let bin_version = bin_version
+            .unwrap_or_else(|| InstallConfig::load_predefined_version(prefix).get(&self).unwrap());
         match self {
-            InstallConfig::Starship => STARSHIP_BINARY.download(bin_dir, bin_version),
-            InstallConfig::Direnv => DIRENV_BINARY.download(bin_dir, bin_version),
-            InstallConfig::Rye => RYE_BINARY.download(bin_dir, bin_version),
-            InstallConfig::Eza => EZA_BINARY.download(bin_dir, bin_version),
-            InstallConfig::Croc => CROC_BINARY.download(bin_dir, bin_version),
-            InstallConfig::Just => JUST_BINARY.download(bin_dir, bin_version),
-            InstallConfig::Skm => SKM_BINARY.download(bin_dir, bin_version),
-            InstallConfig::Dot => DOT_BINARY.download(bin_dir, bin_version),
-            InstallConfig::Zoxide => ZOXIDE_BINARY.download(bin_dir, bin_version),
+            InstallConfig::Starship => STARSHIP_BINARY.download(prefix, bin_version),
+            InstallConfig::Direnv => DIRENV_BINARY.download(prefix, bin_version),
+            InstallConfig::Rye => RYE_BINARY.download(prefix, bin_version),
+            InstallConfig::Eza => EZA_BINARY.download(prefix, bin_version),
+            InstallConfig::Croc => CROC_BINARY.download(prefix, bin_version),
+            InstallConfig::Just => JUST_BINARY.download(prefix, bin_version),
+            InstallConfig::Skm => SKM_BINARY.download(prefix, bin_version),
+            InstallConfig::Dot => DOT_BINARY.download(prefix, bin_version),
+            InstallConfig::Zoxide => ZOXIDE_BINARY.download(prefix, bin_version),
         }
     }
 }
@@ -161,53 +174,123 @@ mod tests {
     use tempfile::TempDir;
 
     use super::*;
+    use crate::utils::get_build_prefix;
 
     #[test]
     fn test_install_starship() {
-        let bin_dir = TempDir::new().unwrap();
-        InstallConfig::Starship.download(bin_dir, None);
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        prefix.create_dir_all();
+        std::fs::copy(
+            get_build_prefix().config_binary().join("version.toml"),
+            prefix.config_binary().join("version.toml"),
+        )
+        .unwrap();
+        InstallConfig::Starship.download(&prefix, None);
     }
 
     #[test]
     fn test_install_direnv() {
-        let bin_dir = TempDir::new().unwrap();
-        InstallConfig::Direnv.download(bin_dir, None);
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        prefix.create_dir_all();
+        std::fs::copy(
+            get_build_prefix().config_binary().join("version.toml"),
+            prefix.config_binary().join("version.toml"),
+        )
+        .unwrap();
+        InstallConfig::Direnv.download(&prefix, None);
     }
 
     #[test]
     fn test_install_rye() {
-        let bin_dir = TempDir::new().unwrap();
-        InstallConfig::Rye.download(bin_dir, None);
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        prefix.create_dir_all();
+        std::fs::copy(
+            get_build_prefix().config_binary().join("version.toml"),
+            prefix.config_binary().join("version.toml"),
+        )
+        .unwrap();
+        InstallConfig::Rye.download(&prefix, None);
     }
 
     #[test]
     #[cfg(target_os = "linux")]
     fn test_install_eza() {
-        let bin_dir = TempDir::new().unwrap();
-        InstallConfig::Eza.download(bin_dir, None);
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        prefix.create_dir_all();
+        std::fs::copy(
+            get_build_prefix().config_binary().join("version.toml"),
+            prefix.config_binary().join("version.toml"),
+        )
+        .unwrap();
+        InstallConfig::Eza.download(&prefix, None);
     }
 
     #[test]
     fn test_install_croc() {
-        let bin_dir = TempDir::new().unwrap();
-        InstallConfig::Croc.download(bin_dir, Some("10.0.0"));
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        prefix.create_dir_all();
+        std::fs::copy(
+            get_build_prefix().config_binary().join("version.toml"),
+            prefix.config_binary().join("version.toml"),
+        )
+        .unwrap();
+        InstallConfig::Croc.download(&prefix, None);
     }
 
     #[test]
     fn test_install_just() {
-        let bin_dir = TempDir::new().unwrap();
-        InstallConfig::Just.download(bin_dir, Some("1.27.0"));
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        prefix.create_dir_all();
+        std::fs::copy(
+            get_build_prefix().config_binary().join("version.toml"),
+            prefix.config_binary().join("version.toml"),
+        )
+        .unwrap();
+        InstallConfig::Just.download(&prefix, None);
     }
 
     #[test]
     fn test_install_skm() {
-        let bin_dir = TempDir::new().unwrap();
-        InstallConfig::Skm.download(bin_dir, Some("0.8.6"));
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        prefix.create_dir_all();
+        std::fs::copy(
+            get_build_prefix().config_binary().join("version.toml"),
+            prefix.config_binary().join("version.toml"),
+        )
+        .unwrap();
+        InstallConfig::Skm.download(&prefix, None);
+    }
+
+    #[test]
+    fn test_install_dot() {
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        prefix.create_dir_all();
+        std::fs::copy(
+            get_build_prefix().config_binary().join("version.toml"),
+            prefix.config_binary().join("version.toml"),
+        )
+        .unwrap();
+        InstallConfig::Dot.download(&prefix, None);
     }
 
     #[test]
     fn test_install_zoxide() {
-        let bin_dir = TempDir::new().unwrap();
-        InstallConfig::Zoxide.download(bin_dir, Some("0.9.4"));
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        prefix.create_dir_all();
+        std::fs::copy(
+            get_build_prefix().config_binary().join("version.toml"),
+            prefix.config_binary().join("version.toml"),
+        )
+        .unwrap();
+        InstallConfig::Zoxide.download(&prefix, None);
     }
 }
