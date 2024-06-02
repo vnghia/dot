@@ -3,18 +3,12 @@ use std::path::Path;
 
 use itertools::Itertools;
 
-pub fn generate_zshenv<
-    P: AsRef<Path>,
-    PD: AsRef<Path>,
-    PC: AsRef<Path>,
-    PL: AsRef<Path>,
-    PB: AsRef<Path>,
->(
-    prefix: P,
-    dot_dir: PD,
-    code_dir: PC,
-    local_dir: PL,
-    bin_dir: PB,
+pub fn generate_zshenv(
+    prefix: impl AsRef<Path>,
+    dot_dir: impl AsRef<Path>,
+    code_dir: impl AsRef<Path>,
+    local_dir: impl AsRef<Path>,
+    bin_dir: impl AsRef<Path>,
 ) {
     let dot_dir = dot_dir.as_ref();
     let code_dir = code_dir.as_ref();

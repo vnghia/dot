@@ -31,23 +31,23 @@ pub enum ArchiveType {
 }
 
 impl ArchiveType {
-    fn extract_tar_gz<P: AsRef<Path>>(data: &[u8], dir: P) -> Option<Vec<u8>> {
+    fn extract_tar_gz(data: &[u8], dir: impl AsRef<Path>) -> Option<Vec<u8>> {
         Archive::new(GzDecoder::new(data)).unpack(dir).unwrap();
         None
     }
 
-    fn extract_gz<P: AsRef<Path>>(data: &[u8], _: P) -> Option<Vec<u8>> {
+    fn extract_gz(data: &[u8], _: impl AsRef<Path>) -> Option<Vec<u8>> {
         let mut buf = vec![];
         GzDecoder::new(data).read_to_end(&mut buf).unwrap();
         Some(buf)
     }
 
-    fn extract_zip<P: AsRef<Path>>(data: &[u8], dir: P) -> Option<Vec<u8>> {
+    fn extract_zip(data: &[u8], dir: impl AsRef<Path>) -> Option<Vec<u8>> {
         ZipArchive::new(Cursor::new(data)).unwrap().extract(dir).unwrap();
         None
     }
 
-    fn extract<P: AsRef<Path>>(self, data: &[u8], dir: P) -> Option<Vec<u8>> {
+    fn extract(self, data: &[u8], dir: impl AsRef<Path>) -> Option<Vec<u8>> {
         match self {
             ArchiveType::TarGz => Self::extract_tar_gz(data, dir),
             ArchiveType::Gz => Self::extract_gz(data, dir),

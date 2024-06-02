@@ -27,7 +27,7 @@ pub enum Shell {
     Zsh,
 }
 
-fn copy_dir_all<PS: AsRef<Path>, PD: AsRef<Path>>(src: PS, dst: PD) -> std::io::Result<()> {
+fn copy_dir_all(src: impl AsRef<Path>, dst: impl AsRef<Path>) -> std::io::Result<()> {
     if dst.as_ref().file_name().unwrap() != "target" {
         std::fs::create_dir_all(&dst)?;
         for entry in std::fs::read_dir(src)? {
