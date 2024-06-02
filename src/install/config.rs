@@ -174,18 +174,22 @@ mod tests {
     use tempfile::TempDir;
 
     use super::*;
-    use crate::utils::get_build_prefix;
+    use crate::utils::get_dot_dir;
+
+    fn copy_version(prefix: &Prefix) {
+        prefix.create_dir_all();
+        std::fs::copy(
+            get_dot_dir().join("config").join("binary").join("version.toml"),
+            prefix.config_binary().join("version.toml"),
+        )
+        .unwrap();
+    }
 
     #[test]
     fn test_install_starship() {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();
-        prefix.create_dir_all();
-        std::fs::copy(
-            get_build_prefix().config_binary().join("version.toml"),
-            prefix.config_binary().join("version.toml"),
-        )
-        .unwrap();
+        copy_version(&prefix);
         InstallConfig::Starship.download(&prefix, None);
     }
 
@@ -193,12 +197,7 @@ mod tests {
     fn test_install_direnv() {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();
-        prefix.create_dir_all();
-        std::fs::copy(
-            get_build_prefix().config_binary().join("version.toml"),
-            prefix.config_binary().join("version.toml"),
-        )
-        .unwrap();
+        copy_version(&prefix);
         InstallConfig::Direnv.download(&prefix, None);
     }
 
@@ -206,12 +205,7 @@ mod tests {
     fn test_install_rye() {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();
-        prefix.create_dir_all();
-        std::fs::copy(
-            get_build_prefix().config_binary().join("version.toml"),
-            prefix.config_binary().join("version.toml"),
-        )
-        .unwrap();
+        copy_version(&prefix);
         InstallConfig::Rye.download(&prefix, None);
     }
 
@@ -220,12 +214,7 @@ mod tests {
     fn test_install_eza() {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();
-        prefix.create_dir_all();
-        std::fs::copy(
-            get_build_prefix().config_binary().join("version.toml"),
-            prefix.config_binary().join("version.toml"),
-        )
-        .unwrap();
+        copy_version(&prefix);
         InstallConfig::Eza.download(&prefix, None);
     }
 
@@ -233,12 +222,7 @@ mod tests {
     fn test_install_croc() {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();
-        prefix.create_dir_all();
-        std::fs::copy(
-            get_build_prefix().config_binary().join("version.toml"),
-            prefix.config_binary().join("version.toml"),
-        )
-        .unwrap();
+        copy_version(&prefix);
         InstallConfig::Croc.download(&prefix, None);
     }
 
@@ -246,12 +230,7 @@ mod tests {
     fn test_install_just() {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();
-        prefix.create_dir_all();
-        std::fs::copy(
-            get_build_prefix().config_binary().join("version.toml"),
-            prefix.config_binary().join("version.toml"),
-        )
-        .unwrap();
+        copy_version(&prefix);
         InstallConfig::Just.download(&prefix, None);
     }
 
@@ -259,12 +238,7 @@ mod tests {
     fn test_install_skm() {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();
-        prefix.create_dir_all();
-        std::fs::copy(
-            get_build_prefix().config_binary().join("version.toml"),
-            prefix.config_binary().join("version.toml"),
-        )
-        .unwrap();
+        copy_version(&prefix);
         InstallConfig::Skm.download(&prefix, None);
     }
 
@@ -272,12 +246,7 @@ mod tests {
     fn test_install_dot() {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();
-        prefix.create_dir_all();
-        std::fs::copy(
-            get_build_prefix().config_binary().join("version.toml"),
-            prefix.config_binary().join("version.toml"),
-        )
-        .unwrap();
+        copy_version(&prefix);
         InstallConfig::Dot.download(&prefix, None);
     }
 
@@ -285,12 +254,7 @@ mod tests {
     fn test_install_zoxide() {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();
-        prefix.create_dir_all();
-        std::fs::copy(
-            get_build_prefix().config_binary().join("version.toml"),
-            prefix.config_binary().join("version.toml"),
-        )
-        .unwrap();
+        copy_version(&prefix);
         InstallConfig::Zoxide.download(&prefix, None);
     }
 }
