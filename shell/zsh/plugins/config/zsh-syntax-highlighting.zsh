@@ -2,10 +2,10 @@ typeset -A ZSH_HIGHLIGHT_STYLES
 
 typeset -g ZSH_HIGHLIGHT_STYLES["unknown-token"]="fg=160"
 typeset -g ZSH_HIGHLIGHT_STYLES["reserved-word"]="fg=130"
-typeset -g ZSH_HIGHLIGHT_STYLES["alias"]="fg=99"
+typeset -g ZSH_HIGHLIGHT_STYLES["alias"]="fg=84"
 typeset -g ZSH_HIGHLIGHT_STYLES["builtin"]="fg=84"
 typeset -g ZSH_HIGHLIGHT_STYLES["command"]="fg=84"
-typeset -g ZSH_HIGHLIGHT_STYLES["function"]="fg=189"
+typeset -g ZSH_HIGHLIGHT_STYLES["function"]="fg=84"
 
 typeset -g ZSH_HIGHLIGHT_STYLES["commandseparator"]="fg=250"
 typeset -g ZSH_HIGHLIGHT_STYLES["redirection"]="fg=250"
