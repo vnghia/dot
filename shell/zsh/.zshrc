@@ -12,6 +12,9 @@ eval "$(starship init zsh)"
 # Direnv
 eval "$(direnv hook zsh)"
 
+# Zoxide
+eval "$(zoxide init zsh)"
+
 # Syntax highlight must be sourced at the nearly end.
 source "$ZDOTDIR/plugins/config/zsh-syntax-highlighting.zsh"
 source "$ZDOTDIR/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"

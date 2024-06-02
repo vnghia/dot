@@ -16,6 +16,7 @@ pub enum InstallConfig {
     Just,
     Skm,
     Dot,
+    Zoxide,
 }
 
 pub const STARSHIP_BINARY: Binary<[&str; 1]> = Binary {
@@ -125,6 +126,20 @@ pub const DOT_BINARY: Binary<[&str; 0]> = Binary {
     phantom_t: std::marker::PhantomData,
 };
 
+pub const ZOXIDE_BINARY: Binary<[&str; 1]> = Binary {
+    name: "zoxide",
+    url: formatc!(
+        "https://github.com/ajeetdsouza/zoxide/releases/download/v{}/zoxide-{}-{}.tar.gz",
+        VERSION_PATTERN,
+        VERSION_PATTERN,
+        str_replace!(TARGET_TRIPLET, "gnu", "musl"),
+    ),
+    archive: Some((ArchiveType::TarGz, Some(["zoxide"]))),
+    version_arg: "--version",
+    phantom_c: std::marker::PhantomData,
+    phantom_t: std::marker::PhantomData,
+};
+
 impl InstallConfig {
     pub fn download<PB: AsRef<Path>>(self, bin_dir: PB, bin_version: Option<&str>) {
         match self {
@@ -136,6 +151,7 @@ impl InstallConfig {
             InstallConfig::Just => JUST_BINARY.download(bin_dir, bin_version),
             InstallConfig::Skm => SKM_BINARY.download(bin_dir, bin_version),
             InstallConfig::Dot => DOT_BINARY.download(bin_dir, bin_version),
+            InstallConfig::Zoxide => ZOXIDE_BINARY.download(bin_dir, bin_version),
         }
     }
 }
@@ -187,5 +203,11 @@ mod tests {
     fn test_install_skm() {
         let bin_dir = TempDir::new().unwrap();
         InstallConfig::Skm.download(bin_dir, Some("0.8.6"));
+    }
+
+    #[test]
+    fn test_install_zoxide() {
+        let bin_dir = TempDir::new().unwrap();
+        InstallConfig::Zoxide.download(bin_dir, Some("0.9.4"));
     }
 }
