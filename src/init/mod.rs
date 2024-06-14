@@ -12,7 +12,7 @@ use crate::Cli;
 #[derive(Debug, Args)]
 pub struct InitArgs {
     /// Url of the dot git repository.
-    #[arg(short, long, value_enum, default_value = "https://github.com/vnghia/dotfile-rs.git")]
+    #[arg(short, long, value_enum, default_value = "https://github.com/vnghia/dot.git")]
     pub repo: String,
     /// Copy from the repo instead of cloning.
     #[arg(short, long, default_value_t = false)]
