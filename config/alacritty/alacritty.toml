@@ -49,6 +49,6 @@ mods = "Control|Shift"
 action = "SpawnNewInstance"
 
 [[keyboard.bindings]]
-key = "E"
+key = "Q"
 mods = "Control|Shift"
 action = "Quit"

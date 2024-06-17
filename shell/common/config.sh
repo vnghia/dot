@@ -16,3 +16,6 @@ export GIT_CONFIG_GLOBAL="$CONFIGDIR/git/.gitconfig"
 
 # Starship
 export STARSHIP_CONFIG="$CONFIGDIR/starship/starship.toml"
+
+# Zellij
+export ZELLIJ_AUTO_EXIT=true
