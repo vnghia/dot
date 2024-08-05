@@ -1,6 +1,6 @@
 use std::path::{Path, PathBuf};
 
-use homedir::get_my_home;
+use homedir::my_home;
 
 use crate::constant::env::DOTDIR_KEY;
 
@@ -19,7 +19,7 @@ impl Prefix {
             Path::new(&dot_dir).parent().unwrap().into()
         } else {
             log::debug!("Prefix from home directory");
-            get_my_home().unwrap().unwrap()
+            my_home().unwrap().unwrap()
         }
         .canonicalize()
         .unwrap();
