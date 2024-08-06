@@ -19,6 +19,7 @@ git2 = { git = "https://github.com/rust-lang/git2-rs", rev = "3ab6e094baabf54766
     "https",
     "ssh-openssh",
     "vendored-libgit2",
+    "vendored-openssl",
 ] }
 homedir = { version = "0.3.3" }
 indicatif = { version = "0.17.8" }
@@ -27,8 +28,7 @@ log = { version = "0.4.21", features = ["kv"] }
 rand = { version = "0.8.5" }
 reqwest = { version = "0.12.5", default-features = false, features = [
     "charset",
-    "rustls-tls",
-    "rustls-tls-native-roots",
+    "native-tls-vendored",
     "http2",
     "macos-system-configuration",
     "blocking",
