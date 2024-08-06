@@ -90,7 +90,7 @@ where
 
         let mut buf = vec![];
         let mut buf_len = 0;
-        let mut reader = ureq::get(&url).call().unwrap().into_reader();
+        let mut reader = reqwest::blocking::get(&url).unwrap();
         loop {
             buf.extend_from_slice(&[0; CHUNK_SIZE]);
             let chunk = &mut buf.as_mut_slice()[buf_len..buf_len + CHUNK_SIZE];
