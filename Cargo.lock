@@ -458,6 +458,7 @@ dependencies = [
  "indicatif",
  "itertools",
  "log",
+ "openssl",
  "rand",
  "reqwest",
  "serde",
