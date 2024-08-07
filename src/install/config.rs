@@ -257,6 +257,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(target_env = "musl"))]
     fn test_install_dot() {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();

@@ -27,6 +27,9 @@ jobs:
           - target: x86_64-unknown-linux-gnu
             command: cargo
             runs-on: ubuntu-latest
+          - target: x86_64-unknown-linux-musl
+            command: cross
+            runs-on: ubuntu-latest
           - target: x86_64-apple-darwin
             command: cargo
             runs-on: macos-13
@@ -43,8 +46,6 @@ jobs:
         env:
           TARGET: ${{ matrix.platform.target }}
         run: |
-          echo "os=$(uname -s | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_OUTPUT"
-          echo "arch=$(echo $TARGET | cut -d '-' -f1)" >> "$GITHUB_OUTPUT"
           echo "profile=${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && 'release' || 'dev' }}" >> "$GITHUB_OUTPUT"
           echo "output-dir=${{ (github.event_name == 'release' || github.event_name == 'workflow_dispatch') && 'release' || 'debug' }}" >> "$GITHUB_OUTPUT"
       - name: Extract rust toolchain
@@ -59,6 +60,15 @@ jobs:
           key: ${{ matrix.platform.target }}-${{ steps.build.outputs.profile }}
           save-if: ${{ github.ref == 'refs/heads/main' }}
 
+      - name: Install cross
+        if: ${{ matrix.platform.command == 'cross' }}
+        uses: taiki-e/cache-cargo-install-action@v2
+        with:
+          tool: cross
+          git: https://github.com/cross-rs/cross
+          rev: 19be83481fd3e50ea103d800d72e0f8eddb1c90c
+          locked: false
+
       - name: Build and test
         run: |
           ${{ matrix.platform.command }} build --locked --target ${{ matrix.platform.target }} --profile ${{ steps.build.outputs.profile }}
@@ -66,7 +76,7 @@ jobs:
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ steps.build.outputs.os }}-${{ steps.build.outputs.arch }}
+          name: ${{ matrix.platform.target }}
           path: ${{ github.workspace }}/target/${{ matrix.platform.target }}/${{ steps.build.outputs.output-dir }}/dot
           retention-days: 1
 
@@ -87,7 +97,8 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          mv artifact/linux-x86_64/dot dot.linux-x86_64
-          mv artifact/darwin-x86_64/dot dot.darwin-x86_64
-          mv artifact/darwin-aarch64/dot dot.darwin-aarch64
-          gh release upload ${{ github.ref_name }} dot.linux-x86_64 dot.darwin-x86_64 dot.darwin-aarch64
+          mv artifact/x86_64-unknown-linux-gnu/dot dot.x86_64-unknown-linux-gnu
+          mv artifact/x86_64-unknown-linux-musl/dot dot.x86_64-unknown-linux-musl
+          mv artifact/x86_64-apple-darwin/dot dot.x86_64-apple-darwin
+          mv artifact/aarch64-apple-darwin/dot dot.aarch64-apple-darwin
+          gh release upload ${{ github.ref_name }} dot.x86_64-unknown-linux-gnu dot.x86_64-unknown-linux-musl dot.x86_64-apple-darwin dot.aarch64-apple-darwin
