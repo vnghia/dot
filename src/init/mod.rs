@@ -20,6 +20,9 @@ pub struct InitArgs {
     /// The corresponding shell to initialize dotfile environments.
     #[arg(short, long, value_enum, default_value_t = Shell::Zsh)]
     pub shell: Shell,
+    /// Custom .bashrc/.zshenv in case of read-only default rc file.
+    #[arg(long)]
+    pub rc_file: Option<String>,
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, ValueEnum)]
@@ -71,9 +74,14 @@ pub fn entry_init(prefix: &Prefix, args: InitArgs) {
     }
 
     match args.shell {
-        Shell::Zsh => {
-            zsh::generate_zshenv(prefix.prefix(), &dot_dir, &code_dir, local_dir, &bin_dir)
-        }
+        Shell::Zsh => zsh::generate_zshenv(
+            prefix.prefix(),
+            &dot_dir,
+            &code_dir,
+            local_dir,
+            &bin_dir,
+            args.rc_file.as_deref(),
+        ),
     }
 
     prefix.create_dir_all();

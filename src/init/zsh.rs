@@ -9,6 +9,7 @@ pub fn generate_zshenv(
     code_dir: impl AsRef<Path>,
     local_dir: impl AsRef<Path>,
     bin_dir: impl AsRef<Path>,
+    rc_file: Option<&str>,
 ) {
     let dot_dir = dot_dir.as_ref();
     let code_dir = code_dir.as_ref();
@@ -31,7 +32,7 @@ pub fn generate_zshenv(
     .map(|(var, path)| format!("export {}={}", var, path.to_str().unwrap()))
     .collect_vec();
 
-    let zshenv_path = prefix.as_ref().join(".zshenv");
+    let zshenv_path = prefix.as_ref().join(rc_file.unwrap_or(".zshenv"));
     let zshenv_content = [
         ["# AUTO GENERATED FILE. DO NOT EDIT".to_string(), "".to_string()].as_slice(),
         export_paths.as_slice(),
