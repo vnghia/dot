@@ -4,7 +4,7 @@ source "$ZDOTDIR/entry.zsh"
 source "$ZDOTDIR/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh"
 
 # Rye
-source "$RYE_HOME/env"
+RYE_ENV="$RYE_HOME/env" && test -f $RYE_ENV && source $RYE_ENV
 
 # Starship
 eval "$(starship init zsh)"
