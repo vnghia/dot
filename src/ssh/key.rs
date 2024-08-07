@@ -9,7 +9,7 @@ use serde::Deserialize;
 
 use super::SshKeyArgs;
 use crate::prefix::Prefix;
-use crate::utils::unwrap_or_missing_argument;
+use crate::utils::{load_predefined_and_local, unwrap_or_missing_argument};
 
 const SSH_INCLUDE_CONDIG_DIR_LINE: &str = formatc!("Include {}/*", Prefix::SSH_CONFIG_DIR_NAME);
 
@@ -33,10 +33,8 @@ impl SshKey {
     pub fn load_predefined_key(prefix: &Prefix) -> &'static HashMap<String, Self> {
         static PREDEFINED_CONFIG: OnceLock<HashMap<String, SshKey>> = OnceLock::new();
         PREDEFINED_CONFIG.get_or_init(|| {
-            let configs: HashMap<String, SshConfig> = toml::from_str(
-                &std::fs::read_to_string(prefix.config_ssh().join("key.toml")).unwrap(),
-            )
-            .unwrap();
+            let configs: HashMap<String, SshConfig> =
+                load_predefined_and_local(prefix.config_ssh().join("key.toml"));
             configs.into_iter().map(|(key, config)| (key.clone(), SshKey { key, config })).collect()
         })
     }
@@ -283,6 +281,54 @@ mod tests {
 [text]
 hostname = "a"
 
+[number]
+hostname = "1"
+comment = "2"
+key = "value"
+"#,
+        )
+        .unwrap();
+        let profiles = SshKey::load_predefined_key(&prefix);
+        assert_eq!(
+            profiles.get("text").unwrap(),
+            &SshKey {
+                key: "text".into(),
+                config: SshConfig {
+                    hostname: "a".into(),
+                    comment: None,
+                    additions: Default::default()
+                }
+            }
+        );
+        assert_eq!(
+            profiles.get("number").unwrap(),
+            &SshKey {
+                key: "number".into(),
+                config: SshConfig {
+                    hostname: "1".into(),
+                    comment: Some("2".into()),
+                    additions: [("key".into(), "value".into())].into_iter().collect()
+                }
+            }
+        );
+    }
+
+    #[test]
+    fn test_parse_predefined_and_local_config() {
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        prefix.create_dir_all();
+        std::fs::write(
+            prefix.config_ssh().join("key.toml"),
+            r#"
+[text]
+hostname = "a"
+"#,
+        )
+        .unwrap();
+        std::fs::write(
+            prefix.config_ssh().join(".local.toml"),
+            r#"
 [number]
 hostname = "1"
 comment = "2"

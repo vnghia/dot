@@ -9,7 +9,7 @@ use super::utils::{get_default_profile, open_repo};
 use super::{GitProfileArgs, GitProfileKeyArgs};
 use crate::git::utils::convert_remote;
 use crate::prefix::Prefix;
-use crate::utils::unwrap_or_missing_argument;
+use crate::utils::{load_predefined_and_local, unwrap_or_missing_argument};
 
 const REMOTE_NAME: &str = "origin";
 
@@ -46,10 +46,8 @@ impl GitProfile {
     pub fn load_predefined_profile(prefix: &Prefix) -> &'static HashMap<String, Self> {
         static PREDEFINED_CONFIG: OnceLock<HashMap<String, GitProfile>> = OnceLock::new();
         PREDEFINED_CONFIG.get_or_init(|| {
-            let configs: HashMap<String, GitConfig> = toml::from_str(
-                &std::fs::read_to_string(prefix.config_git().join("profile.toml")).unwrap(),
-            )
-            .unwrap();
+            let configs: HashMap<String, GitConfig> =
+                load_predefined_and_local(prefix.config_git().join("profile.toml"));
             configs
                 .into_iter()
                 .map(|(key, config)| (key.clone(), GitProfile { key, config }))
@@ -189,6 +187,55 @@ mod tests {
 name = "a"
 email = "b"
 
+[number]
+name = "1"
+email = "2"
+key = "value"
+"#,
+        )
+        .unwrap();
+        let profiles = GitProfile::load_predefined_profile(&prefix);
+        assert_eq!(
+            profiles.get("text").unwrap(),
+            &GitProfile {
+                key: "text".into(),
+                config: GitConfig {
+                    name: "a".into(),
+                    email: "b".into(),
+                    additions: Default::default()
+                }
+            }
+        );
+        assert_eq!(
+            profiles.get("number").unwrap(),
+            &GitProfile {
+                key: "number".into(),
+                config: GitConfig {
+                    name: "1".into(),
+                    email: "2".into(),
+                    additions: [("key".into(), "value".into())].into_iter().collect()
+                }
+            }
+        );
+    }
+
+    #[test]
+    fn test_parse_predefined_and_local_config() {
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        prefix.create_dir_all();
+        std::fs::write(
+            prefix.config_git().join("profile.toml"),
+            r#"
+[text]
+name = "a"
+email = "b"
+"#,
+        )
+        .unwrap();
+        std::fs::write(
+            prefix.config_git().join(".local.toml"),
+            r#"
 [number]
 name = "1"
 email = "2"
