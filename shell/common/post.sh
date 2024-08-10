@@ -5,4 +5,4 @@ export LS_COLORS="di=36:ln=35:so=31:pi=33:ex=32:bd=34;46:cd=34;43:su=30;41:sg=30
 alias ls="ls --color=auto"
 
 # Local configuration that is specific to each machine.
-LOCAL_SH="$SHDIR/.local.sh" && test -f $LOCAL_SH && source $LOCAL_SH
+LOCAL_POST_SH="$SHDIR/.local.post.sh" && test -f $LOCAL_POST_SH && source $LOCAL_POST_SH

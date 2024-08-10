@@ -1,4 +1,4 @@
-source "$SHDIR/entry.sh"
+source "$SHDIR/pre.sh"
 
 # History
 export HISTFILE="$LOCALDIR/.zsh_history"
@@ -13,3 +13,9 @@ setopt HIST_SAVE_NO_DUPS
 
 # Compdump
 export ZSH_COMPDUMP="$LOCALDIR/.zsh_compdump"
+
+# Rye
+RYE_ENV="$RYE_HOME/env" && test -f $RYE_ENV && source $RYE_ENV
+
+# Local configuration that is specific to each machine.
+LOCAL_PRE_ZSH="$ZDOTDIR/.local.pre.zsh" && test -f $LOCAL_PRE_ZSH && source $LOCAL_PRE_ZSH
