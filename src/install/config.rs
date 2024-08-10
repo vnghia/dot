@@ -126,10 +126,9 @@ pub const SKM_BINARY: Binary<[&str; 1]> = Binary {
 pub const DOT_BINARY: Binary<[&str; 0]> = Binary {
     name: "dot",
     url: formatc!(
-        "https://github.com/vnghia/dot/releases/download/v{}/dot.{}-{}",
+        "https://github.com/vnghia/dot/releases/download/v{}/dot.{}",
         VERSION_PATTERN,
-        os::UNAME,
-        arch::FULL,
+        TARGET_TRIPLET,
     ),
     archive: None,
     version_arg: "--version",
