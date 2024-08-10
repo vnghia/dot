@@ -10,7 +10,7 @@ RYE_ENV="$RYE_HOME/env" && test -f $RYE_ENV && source $RYE_ENV
 eval "$(starship init zsh)"
 
 # Direnv
-(("$+commands[direnv]")) && eval "$(direnv hook zsh)"
+(( $+commands[direnv] )) && eval "$(direnv hook zsh)"
 
 # Zoxide
 eval "$(zoxide init zsh)"
