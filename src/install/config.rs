@@ -181,7 +181,7 @@ pub const BAT_BINARY: Binary<[&str; 2]> = Binary {
 };
 
 pub const RIPGREP_BINARY: Binary<[&str; 2]> = Binary {
-    name: "ripgrep",
+    name: "rg",
     url: formatc!(
         "https://github.com/BurntSushi/ripgrep/releases/download/{}/ripgrep-{}-{}.tar.gz",
         VERSION_PATTERN,
