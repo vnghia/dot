@@ -180,6 +180,26 @@ pub const BAT_BINARY: Binary<[&str; 2]> = Binary {
     phantom_t: std::marker::PhantomData,
 };
 
+pub const RIPGREP_BINARY: Binary<[&str; 2]> = Binary {
+    name: "ripgrep",
+    url: formatc!(
+        "https://github.com/BurntSushi/ripgrep/releases/download/{}/ripgrep-{}-{}.tar.gz",
+        VERSION_PATTERN,
+        VERSION_PATTERN,
+        str_replace!(TARGET_TRIPLET, "gnu", "musl"),
+    ),
+    archive: Some((
+        ArchiveType::TarGz,
+        Some([
+            formatc!("ripgrep-{}-{}", VERSION_PATTERN, str_replace!(TARGET_TRIPLET, "gnu", "musl")),
+            "rg",
+        ]),
+    )),
+    version_arg: "--version",
+    phantom_c: std::marker::PhantomData,
+    phantom_t: std::marker::PhantomData,
+};
+
 impl InstallConfig {
     pub fn download(self, prefix: &Prefix, bin_version: Option<&str>) {
         let bin_version = bin_version
@@ -196,6 +216,7 @@ impl InstallConfig {
             InstallConfig::Zoxide => ZOXIDE_BINARY.download(prefix, bin_version),
             InstallConfig::Zellij => ZELLIJ_BINARY.download(prefix, bin_version),
             InstallConfig::Bat => BAT_BINARY.download(prefix, bin_version),
+            InstallConfig::Ripgrep => RIPGREP_BINARY.download(prefix, bin_version),
         }
     }
 }
@@ -304,5 +325,13 @@ mod tests {
         let prefix: Prefix = (&temp_dir).into();
         copy_version(&prefix);
         InstallConfig::Bat.download(&prefix, None);
+    }
+
+    #[test]
+    fn test_install_ripgrep() {
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        copy_version(&prefix);
+        InstallConfig::Ripgrep.download(&prefix, None);
     }
 }
