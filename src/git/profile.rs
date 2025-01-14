@@ -110,8 +110,8 @@ impl GitProfile {
 
     fn set(&self, prefix: &Prefix) {
         let repo = open_repo(None);
-        self.change_remote_url(prefix, &repo);
         self.config.set_config(&repo);
+        self.change_remote_url(prefix, &repo);
     }
 }
 
