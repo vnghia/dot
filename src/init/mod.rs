@@ -5,9 +5,9 @@ use std::path::Path;
 use clap::{Args, CommandFactory, ValueEnum};
 use git2::Repository;
 
+use crate::Cli;
 use crate::git::{clone, pull};
 use crate::prefix::Prefix;
-use crate::Cli;
 
 #[derive(Debug, Args)]
 pub struct InitArgs {

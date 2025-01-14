@@ -1,5 +1,4 @@
 #![deny(clippy::all)]
-#![feature(const_mut_refs)]
 #![feature(exit_status_error)]
 #![feature(let_chains)]
 

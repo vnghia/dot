@@ -289,28 +289,22 @@ key = "value"
         )
         .unwrap();
         let profiles = SshKey::load_predefined_key(&prefix);
-        assert_eq!(
-            profiles.get("text").unwrap(),
-            &SshKey {
-                key: "text".into(),
-                config: SshConfig {
-                    hostname: "a".into(),
-                    comment: None,
-                    additions: Default::default()
-                }
+        assert_eq!(profiles.get("text").unwrap(), &SshKey {
+            key: "text".into(),
+            config: SshConfig {
+                hostname: "a".into(),
+                comment: None,
+                additions: Default::default()
             }
-        );
-        assert_eq!(
-            profiles.get("number").unwrap(),
-            &SshKey {
-                key: "number".into(),
-                config: SshConfig {
-                    hostname: "1".into(),
-                    comment: Some("2".into()),
-                    additions: [("key".into(), "value".into())].into_iter().collect()
-                }
+        });
+        assert_eq!(profiles.get("number").unwrap(), &SshKey {
+            key: "number".into(),
+            config: SshConfig {
+                hostname: "1".into(),
+                comment: Some("2".into()),
+                additions: [("key".into(), "value".into())].into_iter().collect()
             }
-        );
+        });
     }
 
     #[test]
@@ -337,27 +331,21 @@ key = "value"
         )
         .unwrap();
         let profiles = SshKey::load_predefined_key(&prefix);
-        assert_eq!(
-            profiles.get("text").unwrap(),
-            &SshKey {
-                key: "text".into(),
-                config: SshConfig {
-                    hostname: "a".into(),
-                    comment: None,
-                    additions: Default::default()
-                }
+        assert_eq!(profiles.get("text").unwrap(), &SshKey {
+            key: "text".into(),
+            config: SshConfig {
+                hostname: "a".into(),
+                comment: None,
+                additions: Default::default()
             }
-        );
-        assert_eq!(
-            profiles.get("number").unwrap(),
-            &SshKey {
-                key: "number".into(),
-                config: SshConfig {
-                    hostname: "1".into(),
-                    comment: Some("2".into()),
-                    additions: [("key".into(), "value".into())].into_iter().collect()
-                }
+        });
+        assert_eq!(profiles.get("number").unwrap(), &SshKey {
+            key: "number".into(),
+            config: SshConfig {
+                hostname: "1".into(),
+                comment: Some("2".into()),
+                additions: [("key".into(), "value".into())].into_iter().collect()
             }
-        );
+        });
     }
 }

@@ -1,5 +1,5 @@
 use clap::Parser;
-use dot::{entry, Cli};
+use dot::{Cli, entry};
 
 fn main() {
     entry(Cli::parse())
