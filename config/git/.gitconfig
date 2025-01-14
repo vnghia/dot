@@ -51,11 +51,15 @@ ro = "!git fo && git rh origin/${1:-$(git cb)} #"
 
 # Rebase
 rb = rebase
+rba = rb --abort
 rbi = rb -i
 rbtd = rb --edit-todo
 rbc = -c core.editor=true rb --continue
 rbr = rbi --root
 rbh = "!git rbi HEAD~$1 #"
+
+# Status
+st = "status --porcelain"
 
 # Dot
 pr = "!dot git profile"
