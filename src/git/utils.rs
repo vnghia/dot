@@ -80,7 +80,7 @@ pub fn convert_remote(url: &str, host: &str, hostname: &str) -> Option<String> {
             )
         }
     } else {
-        let old_host = url.split_once(':').unwrap().0.split('@').last().unwrap();
+        let old_host = url.split_once(':').unwrap().0.split('@').next_back().unwrap();
         if old_host == host {
             None
         } else if old_host == hostname {

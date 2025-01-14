@@ -3,7 +3,7 @@ include!(concat!(env!("OUT_DIR"), "/install-config.rs"));
 use std::collections::HashMap;
 use std::sync::OnceLock;
 
-use const_format::{formatc, map_ascii_case, str_replace, Case};
+use const_format::{Case, formatc, map_ascii_case, str_replace};
 
 use super::binary::{ArchiveType, Binary, VERSION_PATTERN};
 use crate::constant::target::*;

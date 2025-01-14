@@ -69,7 +69,7 @@ where
     pub phantom_t: PhantomData<&'t T>,
 }
 
-impl<'s, 'a, 'b, 'c, 'd, 't, T: Debug + 't> Binary<'a, 'b, 'c, 'd, 't, T>
+impl<'s, 'c, 't, T: Debug + 't> Binary<'_, '_, 'c, '_, 't, T>
 where
     &'t T: IntoIterator<Item = &'t &'c str>,
     'c: 't,

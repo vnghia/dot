@@ -195,28 +195,22 @@ key = "value"
         )
         .unwrap();
         let profiles = GitProfile::load_predefined_profile(&prefix);
-        assert_eq!(
-            profiles.get("text").unwrap(),
-            &GitProfile {
-                key: "text".into(),
-                config: GitConfig {
-                    name: "a".into(),
-                    email: "b".into(),
-                    additions: Default::default()
-                }
+        assert_eq!(profiles.get("text").unwrap(), &GitProfile {
+            key: "text".into(),
+            config: GitConfig {
+                name: "a".into(),
+                email: "b".into(),
+                additions: Default::default()
             }
-        );
-        assert_eq!(
-            profiles.get("number").unwrap(),
-            &GitProfile {
-                key: "number".into(),
-                config: GitConfig {
-                    name: "1".into(),
-                    email: "2".into(),
-                    additions: [("key".into(), "value".into())].into_iter().collect()
-                }
+        });
+        assert_eq!(profiles.get("number").unwrap(), &GitProfile {
+            key: "number".into(),
+            config: GitConfig {
+                name: "1".into(),
+                email: "2".into(),
+                additions: [("key".into(), "value".into())].into_iter().collect()
             }
-        );
+        });
     }
 
     #[test]
@@ -244,27 +238,21 @@ key = "value"
         )
         .unwrap();
         let profiles = GitProfile::load_predefined_profile(&prefix);
-        assert_eq!(
-            profiles.get("text").unwrap(),
-            &GitProfile {
-                key: "text".into(),
-                config: GitConfig {
-                    name: "a".into(),
-                    email: "b".into(),
-                    additions: Default::default()
-                }
+        assert_eq!(profiles.get("text").unwrap(), &GitProfile {
+            key: "text".into(),
+            config: GitConfig {
+                name: "a".into(),
+                email: "b".into(),
+                additions: Default::default()
             }
-        );
-        assert_eq!(
-            profiles.get("number").unwrap(),
-            &GitProfile {
-                key: "number".into(),
-                config: GitConfig {
-                    name: "1".into(),
-                    email: "2".into(),
-                    additions: [("key".into(), "value".into())].into_iter().collect()
-                }
+        });
+        assert_eq!(profiles.get("number").unwrap(), &GitProfile {
+            key: "number".into(),
+            config: GitConfig {
+                name: "1".into(),
+                email: "2".into(),
+                additions: [("key".into(), "value".into())].into_iter().collect()
             }
-        );
+        });
     }
 }

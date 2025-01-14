@@ -1,7 +1,7 @@
 use url::Url;
 
-use super::utils::{clone, get_default_profile};
 use super::GitCloneArgs;
+use super::utils::{clone, get_default_profile};
 use crate::prefix::Prefix;
 use crate::utils::unwrap_or_missing_argument;
 
@@ -35,7 +35,7 @@ pub fn entry_git_clone(prefix: &Prefix, args: GitCloneArgs) {
     let destination = args.destination.unwrap_or_else(|| {
         std::env::current_dir()
             .unwrap()
-            .join(repo_url.trim_end_matches(".git").split('/').last().unwrap())
+            .join(repo_url.trim_end_matches(".git").split('/').next_back().unwrap())
     });
 
     log::info!(url:? = repo_url, into:? = destination; "Cloning");
@@ -52,15 +52,12 @@ mod tests {
     fn test_clone_http() {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();
-        entry_git_clone(
-            &prefix,
-            GitCloneArgs {
-                repo: "https://github.com/vnghia/dotfile-rs.git".to_owned(),
-                config: None,
-                destination: Some(temp_dir.path().join("clone")),
-                no_recursive: false,
-            },
-        );
+        entry_git_clone(&prefix, GitCloneArgs {
+            repo: "https://github.com/vnghia/dotfile-rs.git".to_owned(),
+            config: None,
+            destination: Some(temp_dir.path().join("clone")),
+            no_recursive: false,
+        });
     }
 
     #[test]
@@ -68,15 +65,12 @@ mod tests {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();
         std::env::set_current_dir(&temp_dir).unwrap();
-        entry_git_clone(
-            &prefix,
-            GitCloneArgs {
-                repo: "https://github.com/vnghia/dotfile-rs.git".to_owned(),
-                config: None,
-                destination: None,
-                no_recursive: false,
-            },
-        );
+        entry_git_clone(&prefix, GitCloneArgs {
+            repo: "https://github.com/vnghia/dotfile-rs.git".to_owned(),
+            config: None,
+            destination: None,
+            no_recursive: false,
+        });
         assert!(temp_dir.path().join("dotfile-rs").exists())
     }
 }
