@@ -19,3 +19,4 @@ export STARSHIP_CONFIG="$CONFIGDIR/starship/starship.toml"
 
 # Zellij
 export ZELLIJ_AUTO_EXIT=true
+export ZELLIJ_CONFIG_DIR="$CONFIGDIR/zellij/"
