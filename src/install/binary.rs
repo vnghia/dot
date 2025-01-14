@@ -117,7 +117,8 @@ where
                 let mut archive_path = temp_dir.path().to_path_buf();
                 if let Some(archive_paths) = archive_paths {
                     for path in archive_paths.into_iter() {
-                        archive_path = archive_path.join(path);
+                        archive_path =
+                            archive_path.join(path.replace(VERSION_PATTERN, bin_version));
                     }
                 } else {
                     archive_path = archive_path.join(self.name);

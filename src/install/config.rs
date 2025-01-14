@@ -163,6 +163,23 @@ pub const ZELLIJ_BINARY: Binary<[&str; 1]> = Binary {
     phantom_t: std::marker::PhantomData,
 };
 
+pub const BAT_BINARY: Binary<[&str; 2]> = Binary {
+    name: "bat",
+    url: formatc!(
+        "https://github.com/sharkdp/bat/releases/download/v{}/bat-v{}-{}.tar.gz",
+        VERSION_PATTERN,
+        VERSION_PATTERN,
+        TARGET_TRIPLET,
+    ),
+    archive: Some((
+        ArchiveType::TarGz,
+        Some([formatc!("bat-v{}-{}", VERSION_PATTERN, TARGET_TRIPLET), "bat"]),
+    )),
+    version_arg: "--version",
+    phantom_c: std::marker::PhantomData,
+    phantom_t: std::marker::PhantomData,
+};
+
 impl InstallConfig {
     pub fn download(self, prefix: &Prefix, bin_version: Option<&str>) {
         let bin_version = bin_version
@@ -178,6 +195,7 @@ impl InstallConfig {
             InstallConfig::Dot => DOT_BINARY.download(prefix, bin_version),
             InstallConfig::Zoxide => ZOXIDE_BINARY.download(prefix, bin_version),
             InstallConfig::Zellij => ZELLIJ_BINARY.download(prefix, bin_version),
+            InstallConfig::Bat => BAT_BINARY.download(prefix, bin_version),
         }
     }
 }
@@ -278,5 +296,13 @@ mod tests {
         let prefix: Prefix = (&temp_dir).into();
         copy_version(&prefix);
         InstallConfig::Zellij.download(&prefix, None);
+    }
+
+    #[test]
+    fn test_install_bat() {
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        copy_version(&prefix);
+        InstallConfig::Bat.download(&prefix, None);
     }
 }
