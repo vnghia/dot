@@ -350,6 +350,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(target_os = "linux")]
     fn test_install_rathole() {
         let temp_dir = TempDir::new().unwrap();
         let prefix: Prefix = (&temp_dir).into();
