@@ -200,6 +200,19 @@ pub const RIPGREP_BINARY: Binary<[&str; 2]> = Binary {
     phantom_t: std::marker::PhantomData,
 };
 
+pub const RATHOLE_BINARY: Binary<[&str; 1]> = Binary {
+    name: "rathole",
+    url: formatc!(
+        "https://github.com/rapiz1/rathole/releases/download/v{}/rathole-{}.zip",
+        VERSION_PATTERN,
+        TARGET_TRIPLET,
+    ),
+    archive: Some((ArchiveType::Zip, Some(["rathole"]))),
+    version_arg: "--version",
+    phantom_c: std::marker::PhantomData,
+    phantom_t: std::marker::PhantomData,
+};
+
 impl InstallConfig {
     pub fn download(self, prefix: &Prefix, bin_version: Option<&str>) {
         let bin_version = bin_version
@@ -217,6 +230,7 @@ impl InstallConfig {
             InstallConfig::Zellij => ZELLIJ_BINARY.download(prefix, bin_version),
             InstallConfig::Bat => BAT_BINARY.download(prefix, bin_version),
             InstallConfig::Ripgrep => RIPGREP_BINARY.download(prefix, bin_version),
+            InstallConfig::Rathole => RATHOLE_BINARY.download(prefix, bin_version),
         }
     }
 }
@@ -333,5 +347,14 @@ mod tests {
         let prefix: Prefix = (&temp_dir).into();
         copy_version(&prefix);
         InstallConfig::Ripgrep.download(&prefix, None);
+    }
+
+    #[test]
+    #[cfg(all(target_os = "linux", not(target_env = "musl")))]
+    fn test_install_rathole() {
+        let temp_dir = TempDir::new().unwrap();
+        let prefix: Prefix = (&temp_dir).into();
+        copy_version(&prefix);
+        InstallConfig::Rathole.download(&prefix, None);
     }
 }
