@@ -25,7 +25,7 @@ homedir = { version = "0.3.4" }
 indicatif = { version = "0.17.9" }
 itertools = { version = "0.14.0" }
 log = { version = "0.4.22", features = ["kv"] }
-rand = { version = "0.8.5" }
+rand = { version = "0.9.0" }
 reqwest = { version = "0.12.12", default-features = false, features = [
     "charset",
     "native-tls-vendored",
