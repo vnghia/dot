@@ -41,7 +41,7 @@ url = { version = "2.5.4" }
 zip = { version = "3.0.0" }
 
 [build-dependencies]
-built = { version = "0.7.5" }
+built = { version = "0.8.0" }
 convert_case = { version = "0.8.0" }
 toml = { version = "0.8.19" }
 
