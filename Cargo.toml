@@ -15,7 +15,7 @@ env_logger = { version = "0.11.6", default-features = false, features = [
     "unstable-kv",
 ] }
 flate2 = { version = "1.0.35" }
-git2 = { git = "https://github.com/rust-lang/git2-rs", rev = "8614b5de5245b06caa8b6e569e8c5bde06ab3e51", default-features = false, features = [
+git2 = { git = "https://github.com/rust-lang/git2-rs", rev = "f42a01267a3042b26d30e9d8acf286c6c739bd8a", default-features = false, features = [
     "https",
     "ssh-openssh",
     "vendored-libgit2",
