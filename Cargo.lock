@@ -143,9 +143,9 @@ dependencies = [
 
 [[package]]
 name = "built"
-version = "0.7.7"
+version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56ed6191a7e78c36abdb16ab65341eefd73d64d303fffccdbb00d51e4205967b"
+checksum = "6192709ebc97997197804bcbb092ef897b5a6a2f33e2c77779f694dbe90fec1e"
 
 [[package]]
 name = "bumpalo"
